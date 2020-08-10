@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<locale country="us" lang="en">
+    <type>
+        <boolean>
+            <true>enabled</true>
+            <false>disabled</false>
+        </boolean>
+    </type>
+    <stats>
+        <recap>
+            <match>Match Recap</match>
+            <life>Life Recap</life>
+            <damage>
+                <damagegiven>Damage given</damagegiven>
+                <damagetaken>Damage taken</damagetaken>
+                <from>{0} taken from {1}</from>
+                <to>{0} given to {1}</to>
+                <environment>environment</environment>
+            </damage>
+        </recap>
+    </stats>
+</locale>

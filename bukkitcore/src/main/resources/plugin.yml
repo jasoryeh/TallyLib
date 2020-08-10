@@ -1,0 +1,4 @@
+name: Tally
+main: tk.jasonho.tally.core.bukkit.TallyPlugin
+version: 1.0
+author: Jason Ho
