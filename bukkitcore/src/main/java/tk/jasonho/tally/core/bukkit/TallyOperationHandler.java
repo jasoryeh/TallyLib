@@ -5,6 +5,7 @@ import lombok.Getter;
 import tk.jasonho.tally.api.TallyStatsManager;
 import tk.jasonho.tally.api.util.Threading;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -64,6 +65,7 @@ public class TallyOperationHandler {
 
         String actorr = actor == null || actor.equals(DamageTrackModule.ENVIRONMENT) ? null : actor.toString();
         String receiverr = recvr == null || recvr.equals(DamageTrackModule.ENVIRONMENT) ? null : recvr.toString();
+        ArrayList<String> adjustedLabels = new ArrayList<>(labels);
 
 
         this.tally.optionalLog("Starting track task: " + information);
@@ -78,7 +80,7 @@ public class TallyOperationHandler {
                             receiverr,
                             hidden,
                             extras,
-                            labels))
+                            adjustedLabels))
                     == -1) {
                 this.tally.getLogger().warning("Failed tracking: " + information + "(-1); will retry.");
                 Threading.sleep(5000);

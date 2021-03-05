@@ -49,7 +49,8 @@ public class TallyPlugin extends JavaPlugin {
         this.statsManager = new TallyStatsManager(
                 new TallyConfiguration(
                         this.getConfig().getString("host", null),
-                        this.getConfig().getString("auth")),
+                        this.getConfig().getString("auth"),
+                        this.getConfig().getList("labels", new ArrayList<>())),
                 TallyStatsVersion.V1);
 
         this.taskManager = new TallyThreading(this);
