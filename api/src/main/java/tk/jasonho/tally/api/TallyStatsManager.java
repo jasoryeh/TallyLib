@@ -1,6 +1,7 @@
 package tk.jasonho.tally.api;
 
 import com.google.gson.*;
+import lombok.Getter;
 import tk.jasonho.tally.api.interfacing.TallyConnectionBuilder;
 import tk.jasonho.tally.api.interfacing.TallyStatsVersion;
 import tk.jasonho.tally.api.models.Game;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TallyStatsManager {
+    @Getter
     private final TallyConfiguration configuration;
     private final TallyStatsVersion version;
     private final DataAccessor accessor;

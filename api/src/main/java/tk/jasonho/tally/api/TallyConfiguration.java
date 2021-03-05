@@ -14,6 +14,7 @@ public class TallyConfiguration {
     private final String host;
     @Getter
     private final String auth;
+    @Getter
     private final List<String> labels;
 
     public static final String DEFAULT_STATS_HOST = "https://stats.jasoryeh.tk/";
