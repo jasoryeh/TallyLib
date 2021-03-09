@@ -30,8 +30,6 @@ public class TallyPlugin extends JavaPlugin {
     protected TallyOperationHandler operationHandler;
 
     @Getter
-    protected BukkitListener globalListener;
-    @Getter
     protected BukkitCombatListener combatListener;
 
     @Override
@@ -60,8 +58,6 @@ public class TallyPlugin extends JavaPlugin {
         this.loadTracker(new DefaultDamageTrackModule(this.operationHandler, "null"));
 
         // track default pvp/login, the usual events
-        this.globalListener = new BukkitListener(this.operationHandler);
-        this.registerTallyListener(this.globalListener);
         this.combatListener = new BukkitCombatListener(this.operationHandler);
         this.registerTallyListener(this.combatListener);
 
@@ -76,7 +72,6 @@ public class TallyPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         this.unloadTracker();
-        this.unregisterTallyListener(this.globalListener);
         this.unregisterTallyListener(this.combatListener);
         this.getLogger().info("Tally downed.");
     }

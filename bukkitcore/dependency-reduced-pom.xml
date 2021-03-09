@@ -57,42 +57,6 @@
       <version>1.8.8-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>us.myles</groupId>
-      <artifactId>viaversion</artifactId>
-      <version>3.2.0-SNAPSHOT</version>
-      <scope>provided</scope>
-      <exclusions>
-        <exclusion>
-          <artifactId>viaversion-common</artifactId>
-          <groupId>us.myles</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>viaversion-bukkit</artifactId>
-          <groupId>us.myles</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>viaversion-bungee</artifactId>
-          <groupId>us.myles</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>viaversion-fabric</artifactId>
-          <groupId>us.myles</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>viaversion-sponge</artifactId>
-          <groupId>us.myles</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>viaversion-velocity</artifactId>
-          <groupId>us.myles</groupId>
-        </exclusion>
-        <exclusion>
-          <artifactId>bungeecord-chat</artifactId>
-          <groupId>net.md-5</groupId>
-        </exclusion>
-      </exclusions>
-    </dependency>
   </dependencies>
 </project>
 

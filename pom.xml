@@ -32,10 +32,6 @@
             <id>pgm-ac</id>
             <url>https://repo.ashcon.app/content/repositories/snapshots</url>
         </repository>
-        <repository>
-            <id>viaversion-repo</id>
-            <url>https://repo.viaversion.com</url>
-        </repository>
     </repositories>
 
     <dependencyManagement>
@@ -60,11 +56,6 @@
                 <groupId>app.ashcon</groupId>
                 <artifactId>sportpaper-api</artifactId>
                 <version>1.8.8-R0.1-SNAPSHOT</version>
-            </dependency>
-            <dependency>
-                <groupId>us.myles</groupId>
-                <artifactId>viaversion</artifactId>
-                <version>3.2.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
