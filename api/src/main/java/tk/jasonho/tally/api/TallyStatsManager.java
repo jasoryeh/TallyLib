@@ -52,8 +52,11 @@ public class TallyStatsManager {
     /**
      * Holds all the data retrievers
      */
+    @Getter
     public static class DataAccessor {
         private final TallyStatsManager manager;
+        private final List<Long> stats = new ArrayList<>();
+
         public DataAccessor(TallyStatsManager manager) {
             this.manager = manager;
         }
@@ -280,7 +283,9 @@ public class TallyStatsManager {
                     TallyLogger.say(parse.get("message").getAsString());
                     return -1;
                 } else {
-                    return parse.get("data").getAsJsonObject().get("id").getAsLong();
+                    long statID = parse.get("data").getAsJsonObject().get("id").getAsLong();
+                    this.stats.add(statID);
+                    return statID;
                 }
             } catch(Exception e) {
                 e.printStackTrace();

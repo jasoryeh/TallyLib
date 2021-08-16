@@ -1,5 +1,6 @@
 package tk.jasonho.tally.core.bukkit;
 
+import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
@@ -14,7 +15,7 @@ class TallyCommand extends BukkitCommand {
 
     {
         this.description = "Manage Tally statistics settings.";
-        this.usageMessage = "/tally <addlabel|removelabel|list> [label1 label2 label3...]";
+        this.usageMessage = "/tally <addlabel|removelabel|list|stats|instance> [label1 label2 label3...]";
         this.setPermission("tally.manage");
         this.setAliases(new ArrayList<>());
     }
@@ -39,6 +40,11 @@ class TallyCommand extends BukkitCommand {
                             .map(t -> t.getTaskId() + "")
                             .collect(Collectors.joining(", ")));
                     return true;
+                } else if(mode.equalsIgnoreCase("stats")) {
+                    List<Long> stats = this.tally.getStatsManager().access().getStats();
+                    commandSender.sendMessage("Stored " + stats.size() + " stats.");
+                } else if(mode.equalsIgnoreCase("instance")) {
+                    commandSender.sendMessage("ID: " + this.tally.getStatsManager().getInstanceRandom());
                 }
             }
             commandSender.sendMessage(ChatColor.RED + INVALID_USAGE + this.usageMessage);

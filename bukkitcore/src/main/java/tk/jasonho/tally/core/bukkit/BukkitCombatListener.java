@@ -7,6 +7,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.UUID;
@@ -61,6 +62,14 @@ public class BukkitCombatListener extends TallyListener {
             this.handleDeath(((Player) entity), this.resolve(event1.getActor()));
         } else {
             this.handleDeath(((Player) entity), null);
+        }
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        if (event.getPlayer().hasPermission("tally.debug")) {
+            event.getPlayer().sendMessage("Tally Instance ID: "
+                + this.operationHandler.getTally().getStatsManager().getInstanceRandom().toString());
         }
     }
 
