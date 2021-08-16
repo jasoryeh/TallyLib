@@ -1,6 +1,7 @@
 package tk.jasonho.tally.api;
 
 import com.google.gson.*;
+import java.util.UUID;
 import lombok.Getter;
 import tk.jasonho.tally.api.interfacing.TallyConnectionBuilder;
 import tk.jasonho.tally.api.interfacing.TallyStatsVersion;
@@ -13,16 +14,18 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class TallyStatsManager {
-    @Getter
     private final TallyConfiguration configuration;
     private final TallyStatsVersion version;
     private final DataAccessor accessor;
+    private final UUID instanceRandom;
 
     public TallyStatsManager(TallyConfiguration configuration, TallyStatsVersion version) {
         this.configuration = configuration;
         this.version = version;
         this.accessor = new DataAccessor(this);
+        this.instanceRandom = UUID.randomUUID();
 
         this.test();
     }
@@ -250,8 +253,14 @@ public class TallyStatsManager {
             for (String label : labels) {
                 jasonLabels.add(new JsonPrimitive(label));
             }
+            this.manager.getConfiguration()
+                .getLabels()
+                .stream()
+                .map(JsonPrimitive::new)
+                .forEach(jasonLabels::add);
             jsonObject.add("labels", jasonLabels);
             jsonObject.addProperty("hide", hidden);
+            extra.addProperty("_tallyinstance", this.manager.instanceRandom.toString());
             jsonObject.add("extra", extra);
             try {
                 JsonElement statistic = this.manager.connectionBuilder("statistic").post()

@@ -66,9 +66,6 @@ public class TallyOperationHandler {
         String actorr = actor == null || actor.equals(DamageTrackModule.ENVIRONMENT) ? null : actor.toString();
         String receiverr = recvr == null || recvr.equals(DamageTrackModule.ENVIRONMENT) ? null : recvr.toString();
 
-        ArrayList<String> adjustedLabels = new ArrayList<>(labels);
-        adjustedLabels.addAll(this.tally.getStatsManager().getConfiguration().getLabels());
-
         this.tally.optionalLog("Starting track task: " + information);
         this.tally.getTaskManager().async(() -> {
             this.tally.optionalLog("Tally tracking: " + information);
@@ -81,7 +78,7 @@ public class TallyOperationHandler {
                             receiverr,
                             hidden,
                             extras,
-                            adjustedLabels))
+                            labels))
                     == -1) {
                 this.tally.getLogger().warning("Failed tracking: " + information + "(-1); will retry.");
                 Threading.sleep(5000);

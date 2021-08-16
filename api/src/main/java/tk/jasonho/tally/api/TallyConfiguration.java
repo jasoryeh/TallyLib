@@ -1,5 +1,6 @@
 package tk.jasonho.tally.api;
 
+import java.util.Map;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import tk.jasonho.tally.api.exceptions.UnknownAPIHostException;
@@ -7,6 +8,7 @@ import tk.jasonho.tally.api.exceptions.UnknownAPIHostException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import tk.jasonho.tally.api.util.TallyLogger;
 
 public class TallyConfiguration {
 
@@ -36,6 +38,15 @@ public class TallyConfiguration {
                 // pass
             }
         });
+
+        Map<String, String> env = System.getenv();
+        if (env.containsKey("TALLY_LABELS")) {
+            TallyLogger.say("Found TALLY_LABELS system variable...");
+            for (String label : env.get("TALLY_LABELS").split(" ")) {
+                TallyLogger.say("Adding label: " + label);
+                this.labels.add(label);
+            }
+        }
 
         if(!this.getHost().startsWith("http") && !this.getHost().endsWith("/")) {
             // doesn't seem to be an actual url... so we test it!
