@@ -1,4 +1,4 @@
-package tk.jasonho.tally.core.bukkit;
+package tk.jasonho.tally.api.util;
 
 import tk.jasonho.tally.api.interfacing.TallyConnectionBuilder;
 

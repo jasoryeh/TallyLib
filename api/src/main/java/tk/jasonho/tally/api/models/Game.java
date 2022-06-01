@@ -1,59 +1,51 @@
 package tk.jasonho.tally.api.models;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import lombok.Getter;
+import lombok.Data;
 import lombok.SneakyThrows;
 import tk.jasonho.tally.api.TallyStatsManager;
-import tk.jasonho.tally.api.util.Constants;
+import tk.jasonho.tally.api.models.helpers.MapsTo;
+import tk.jasonho.tally.api.models.helpers.Model;
 
-import java.text.ParseException;
-import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Game {
+@Data
+public class Game extends Model {
+    @MapsTo("id")
+    private Integer id;
+    @MapsTo("tag")
+    private String tag;
+    @MapsTo("name")
+    private String name;
+    @MapsTo("description")
+    private String description;
 
-    @Getter private final int id;
-    @Getter private String tag;
-    @Getter private String name;
-    @Getter private String description;
-    @Getter private boolean enabled;
-    @Getter private Instant updatedAt;
-    @Getter private final Instant createdAt;
+    public Game() {}
 
-    public static Game deserialize(JsonObject obj) throws ParseException {
-        return new Game(obj);
+    @SneakyThrows
+    public static List<Game> all(TallyStatsManager manager) {
+        ArrayList<Game> games = new ArrayList<>();
+        for (JsonElement data : manager.connectionBuilder("game/list")
+                .get()
+                .getReadJson()
+                .getAsJsonObject()
+                .get("data")
+                .getAsJsonArray()) {
+            games.add(Model.deserialize(Game.class, data.getAsJsonObject()));
+        }
+        return games;
     }
 
-    private Game(JsonObject obj) throws ParseException  {
-        this(obj.get("id").getAsInt(), obj.get("tag").isJsonNull() ? null : obj.get("tag").getAsString(),
-                obj.get("name").getAsString(), obj.get("description").getAsString(), obj.get("enabled").getAsBoolean(),
-                Constants.JS_DEFAULT_FORMAT.parse(obj.get("updatedAt").getAsString()).toInstant(),
-                Constants.JS_DEFAULT_FORMAT.parse(obj.get("createdAt").getAsString()).toInstant());
+    @SneakyThrows
+    public static Game ofTag(TallyStatsManager manager, String tag) {
+        JsonObject data = manager.connectionBuilder("game/tag?tag=" + tag)
+                .get()
+                .getReadJson()
+                .getAsJsonObject()
+                .get("data")
+                .getAsJsonObject();
+        return Model.deserialize(Game.class, data);
     }
-
-    private Game(int id, String tag, String name, String description,
-                boolean enabled, Instant updatedAt, Instant createdAt) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.set(tag, name, description, enabled, updatedAt);
-    }
-
-    private void set(String tag, String name, String description,
-                     boolean enabled, Instant updatedAt) {
-        this.tag = tag;
-        this.name = name;
-        this.description = description;
-        this.enabled = enabled;
-        this.updatedAt = updatedAt;
-    }
-
-    private void set(JsonObject obj) throws ParseException  {
-        this.set(obj.get("tag").isJsonNull() ? null : obj.get("tag").getAsString(),
-                obj.get("name").getAsString(), obj.get("description").getAsString(), obj.get("enabled").getAsBoolean(),
-                Constants.JS_DEFAULT_FORMAT.parse(obj.get("updatedAt").getAsString()).toInstant());
-    }
-
-    public void update(TallyStatsManager manager) throws ParseException  {
-        this.set(manager.access().raw_getGame(this.id));
-    }
-
 }

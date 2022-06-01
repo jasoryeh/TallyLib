@@ -1,86 +1,75 @@
 package tk.jasonho.tally.api.models;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import lombok.Getter;
-import tk.jasonho.tally.api.util.Constants;
+import lombok.Data;
+import lombok.SneakyThrows;
 import tk.jasonho.tally.api.TallyStatsManager;
+import tk.jasonho.tally.api.models.helpers.MapsTo;
+import tk.jasonho.tally.api.models.helpers.Model;
 
-import java.text.ParseException;
-import java.time.Instant;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class Statistic {
+@Data
+public class Statistic extends Model {
+    public final static AtomicLong handledSoFar = new AtomicLong(0);
 
-    @Getter
-    private String objective;
-    @Getter
-    private Game game;
-    @Getter
-    private GamePlayer actor;
-    @Getter
-    private GamePlayer receiver;
-    @Getter
-    private boolean hidden;
-    @Getter
-    private JsonArray labels;
-    @Getter
-    public long id;
-    @Getter public Instant updatedAt;
-    @Getter public final Instant createdAt;
+    @MapsTo("id")
+    public int id;
+    @MapsTo("game")
+    private Integer game;
+    @MapsTo("score")
+    private String score;
+    @MapsTo("instance")
+    private Integer instance;
 
-    public static Statistic deserialize(JsonObject obj, TallyStatsManager manager) throws ParseException {
-        return new Statistic(obj, manager);
+    public Statistic() {}
+
+    public void link(TallyStatsManager mgr, Label label, boolean primary) {
+        label.link(mgr, this, primary);
     }
 
-    private Statistic(JsonObject obj, TallyStatsManager manager) throws ParseException {
-        this(obj.get("id").getAsLong(), obj.get("type").getAsString(),
-                manager.access().getGame(obj.get("gameType").getAsInt()),
-                obj.get("hide").getAsBoolean(),
-                new JsonParser().parse(obj.get("labels").getAsString()).getAsJsonArray(),
-                Constants.JS_DEFAULT_FORMAT.parse(obj.get("updatedAt").getAsString()).toInstant(),
-                Constants.JS_DEFAULT_FORMAT.parse(obj.get("createdAt").getAsString()).toInstant(),
-                obj, manager);
+    @SneakyThrows
+    public StatLink causalLink(TallyStatsManager mgr, Player player, String role) {
+        StatLink build = StatLink.builder()
+                .player(player.getId())
+                .statistic(this.id)
+                .role(role)
+                .build();
+        build.saveAsCausal(mgr);
+        return build;
     }
 
-    private Statistic(long id, String objective, Game game, boolean hidden, JsonArray labels,
-                     Instant updatedAt, Instant createdAt, JsonObject obj, TallyStatsManager manager) {
-        this(id, objective, game, manager.access().getGamePlayer(game, obj.get("actor").getAsString()),
-                manager.access().getGamePlayer(game, obj.get("receiver").getAsString()),
-                hidden, labels, updatedAt, createdAt);
+    @SneakyThrows
+    public StatLink ownsLink(TallyStatsManager mgr, Player player, String role) {
+        StatLink build = StatLink.builder()
+                .player(player.getId())
+                .statistic(this.id)
+                .role(role)
+                .build();
+        build.saveAsOwns(mgr);
+        return build;
     }
 
-    private Statistic(long id, String objective, Game game, GamePlayer actor, GamePlayer receiver, boolean hidden,
-                     JsonArray labels, Instant updatedAt, Instant createdAt) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.set(objective, game, actor, receiver, hidden, labels, updatedAt);
+    @SneakyThrows
+    public void save(TallyStatsManager manager) {
+        JsonObject instance = manager.connectionBuilder("statistic")
+                .post()
+                .writeJson(Model.serialize(this))
+                .verifyJsonThrowing()
+                .getReadJson()
+                .getAsJsonObject()
+                .get("data")
+                .getAsJsonObject();
+        this.updateWith(Model.deserialize(Statistic.class, instance));
+        handledSoFar.incrementAndGet();
     }
 
-    public void set(String objective, Game game, GamePlayer actor, GamePlayer receiver, boolean hidden,
-                    JsonArray labels, Instant updatedAt) {
-        this.objective = objective;
-        this.game = game;
-        this.actor = actor;
-        this.receiver = receiver;
-        this.hidden = hidden;
-        this.labels = labels;
-        this.updatedAt = updatedAt;
+    public static Statistic of(TallyStatsManager mgr, Game game, String score, Instance instance) {
+        Statistic statistic = new Statistic();
+        statistic.setGame(game.getId());
+        statistic.setScore(score);
+        statistic.setInstance(instance.getId());
+        statistic.save(mgr);
+        return statistic;
     }
-
-    private void set(JsonObject obj, TallyStatsManager manager) throws ParseException {
-        Game gameType = manager.access().getGame(obj.get("gameType").getAsInt());
-        this.set(obj.get("type").getAsString(), gameType,
-                manager.access().getGamePlayer(game, obj.get("actor").getAsString()),
-                manager.access().getGamePlayer(game, obj.get("receiver").getAsString()),
-                obj.get("hide").getAsBoolean(),
-                new JsonParser().parse(obj.get("labels").getAsString()).getAsJsonArray(),
-                Constants.JS_DEFAULT_FORMAT.parse(obj.get("updatedAt").getAsString()).toInstant());
-    }
-
-    public void update(TallyStatsManager manager) throws ParseException  {
-        this.set(manager.access().raw_getStatistic(this.getId()), manager);
-    }
-
-
 }

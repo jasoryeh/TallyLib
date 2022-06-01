@@ -1,3 +1,4 @@
 host: https://stats.jasoryeh.tk/
 auth: token
 verbose: false
+gameTag: mcj

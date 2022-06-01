@@ -26,12 +26,11 @@ public class TallyConnectionBuilder {
         this.header("User-Agent", "Tally/Java");
     }
 
-    public TallyConnectionBuilder build() {
-        return this;
-    }
-
+    /**
+     * Methods.
+     */
     @SneakyThrows
-    public TallyConnectionBuilder withMethod(String method) {
+    private TallyConnectionBuilder withMethod(String method) {
         this.connection.setRequestMethod(method);
         return this;
     }
@@ -52,23 +51,18 @@ public class TallyConnectionBuilder {
     }
 
     public TallyConnectionBuilder authBearer(String token) {
-        this.connection.setRequestProperty("Authorization", "Bearer " + token);
-        return this;
-    }
-
-    public TallyConnectionBuilder authBasic(String user, String pass) {
-        String var1 = user + ":" + pass;
-        this.connection.setRequestProperty("Authorization", "Basic " + new String(Base64.getEncoder().encode(var1.getBytes())));
+        this.header("Authorization", "Bearer " + token);
         return this;
     }
 
     public TallyConnectionBuilder json() {
-        this.connection.setRequestProperty("Content-Type", "application/json");
+        this.header("Content-Type", "application/json");
         return this;
     }
 
     public TallyConnectionBuilder writeJson(JsonElement json) {
-        this.json().writeOut(new Gson().toJson(json));
+        String body = new Gson().toJson(json);
+        this.json().writeOut(body);
         return this;
     }
 
@@ -87,50 +81,68 @@ public class TallyConnectionBuilder {
     public String read;
 
     public JsonElement getReadJson() throws JsonSyntaxException {
+        if (this.read == null) {
+            this.readIn();
+        }
         return new JsonParser().parse(this.read)
                 .getAsJsonObject();
     }
 
-    public JsonElement verifyJsonReturn(boolean againstTallyExpectations) {
-        if(this.verifyJson(againstTallyExpectations)) {
-            return this.getReadJson();
-        } else {
+    private String responseMessage(JsonObject response) {
+        if (!response.has("message")) {
             return null;
+        }
+        JsonElement message = response.get("message");
+        if (message.isJsonPrimitive()) {
+            return message.getAsString();
+        } else if (message.isJsonNull()) {
+            return null;
+        } else {
+            throw new IllegalStateException("The `message` field of a Tally response must be a string, null, or undefined.");
         }
     }
 
-    public TallyConnectionBuilder verifyJsonCallback(boolean againstTallyAPIExpectations, ParameterizedCallback<JsonElement> callback, ParameterizedCallback<Exception> err) {
-        try {
-            this.verifyJsonThrowing(againstTallyAPIExpectations);
-            callback.run(this.getReadJson());
-        } catch(Exception e) {
-            err.run(e);
+    private boolean responseErrored(JsonObject response) {
+        if (!response.has("error")) {
+            return false;
+        }
+        JsonElement error = response.get("error");
+        if (error.isJsonPrimitive()) {
+            return error.getAsBoolean();
+        } else if (error.isJsonNull()) {
+            return false;
+        } else {
+            throw new IllegalStateException("The `error` field of a Tally response must be a boolean, null, or undefined");
+        }
+    }
+
+    @SneakyThrows
+    public TallyConnectionBuilder verifyJsonThrowing() {
+        if (!this.verifyJson()) {
+            throw new APIException("Verification of response failed!");
         }
         return this;
     }
 
-    @SneakyThrows
-    public TallyConnectionBuilder verifyJsonThrowing(boolean againstTallyAPIExpectations) {
-        if(this.verifyJson(againstTallyAPIExpectations)) {
-            return this;
-        } else {
-            throw new APIException("Failed verification of json request!");
-        }
-    }
-
-    public boolean verifyJson(boolean againstTallyAPIExpectations) {
+    public boolean verifyJson() {
         try {
             JsonElement readJson = this.getReadJson();
-            if(againstTallyAPIExpectations) {
-                JsonObject asJsonObject = readJson.getAsJsonObject();
-                if(asJsonObject.has("error") && asJsonObject.get("error").getAsBoolean()) {
-                    TallyLogger.say("An error was produced in request: " + asJsonObject.get("message").getAsString());
-                    return false;
-                }
-                if(asJsonObject.has("warning") && asJsonObject.get("warning").getAsBoolean()) {
-                    TallyLogger.say("Warning was produced in request: " + asJsonObject.get("message").getAsString());
-                }
+            if (!readJson.isJsonObject()) {
+                TallyLogger.say("Response was not a JSON object!");
+                return false;
             }
+            JsonObject asJsonObject = readJson.getAsJsonObject();
+
+            String message = this.responseMessage(asJsonObject);
+            if (message != null) {
+                TallyLogger.say("Message from Tally endpoint: " + message);
+            }
+
+            if (this.responseErrored(asJsonObject)) {
+                TallyLogger.say("An error was produced in request: " + message);
+                return false;
+            }
+
             return true;
         } catch(Exception e) {
             TallyLogger.say("Error produced whilst verifying json request.");
@@ -149,7 +161,7 @@ public class TallyConnectionBuilder {
             readInStream = this.connection.getErrorStream();
         }
 
-        try(BufferedReader br = new BufferedReader(new InputStreamReader(readInStream, "utf-8"))) {
+        try(BufferedReader br = new BufferedReader(new InputStreamReader(readInStream, StandardCharsets.UTF_8))) {
             String line = null;
             while((line = br.readLine()) != null) {
                 stringBuilder.append(line.trim());

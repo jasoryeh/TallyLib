@@ -69,7 +69,7 @@ public class BukkitCombatListener extends TallyListener {
     public void onJoin(PlayerJoinEvent event) {
         if (event.getPlayer().hasPermission("tally.debug")) {
             event.getPlayer().sendMessage("Tally Instance ID: "
-                + this.operationHandler.getTally().getStatsManager().getInstanceRandom().toString());
+                + this.operationHandler.getTally().getStatsManager().getInstance().getSelfid());
         }
     }
 

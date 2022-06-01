@@ -8,7 +8,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import tk.jasonho.tally.api.TallyConfiguration;
 import tk.jasonho.tally.api.TallyStatsManager;
-import tk.jasonho.tally.api.interfacing.TallyStatsVersion;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -48,8 +47,8 @@ public class TallyPlugin extends JavaPlugin {
                 new TallyConfiguration(
                         this.getConfig().getString("host", null),
                         this.getConfig().getString("auth"),
-                        this.getConfig().getList("labels", new ArrayList<>())),
-                TallyStatsVersion.V1);
+                        ((List<String>) this.getConfig().getList("labels", new ArrayList<>())))
+        );
 
         this.taskManager = new TallyThreading(this);
         this.operationHandler = new TallyOperationHandler(this);
@@ -79,8 +78,6 @@ public class TallyPlugin extends JavaPlugin {
     public static TallyPlugin getInstance() {
         return instance;
     }
-
-    public final static int TALLY_MINECRAFT_JAVA_EDITION = 1;
 
     public void registerTallyListener(TallyListener listener) {
         this.registerTallyListener(listener, this);

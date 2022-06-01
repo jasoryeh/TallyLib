@@ -4,6 +4,7 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
+import tk.jasonho.tally.api.models.Statistic;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -41,10 +42,9 @@ class TallyCommand extends BukkitCommand {
                             .collect(Collectors.joining(", ")));
                     return true;
                 } else if(mode.equalsIgnoreCase("stats")) {
-                    List<Long> stats = this.tally.getStatsManager().access().getStats();
-                    commandSender.sendMessage("Stored " + stats.size() + " stats.");
+                    commandSender.sendMessage("Stored " + Statistic.handledSoFar.get() + " stats.");
                 } else if(mode.equalsIgnoreCase("instance")) {
-                    commandSender.sendMessage("ID: " + this.tally.getStatsManager().getInstanceRandom());
+                    commandSender.sendMessage("ID: " + this.tally.getStatsManager().getInstance().getSelfid());
                 }
             }
             commandSender.sendMessage(ChatColor.RED + INVALID_USAGE + this.usageMessage);

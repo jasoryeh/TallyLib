@@ -3,18 +3,25 @@ package tk.jasonho.tally.core.bukkit;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import tk.jasonho.tally.api.TallyStatsManager;
+import tk.jasonho.tally.api.models.Game;
+import tk.jasonho.tally.api.models.Label;
+import tk.jasonho.tally.api.models.Player;
+import tk.jasonho.tally.api.models.Statistic;
+import tk.jasonho.tally.api.util.TallyUtils;
 import tk.jasonho.tally.api.util.Threading;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class TallyOperationHandler {
 
     @Getter
     private TallyPlugin tally;
+    private Game game;
     public TallyOperationHandler(TallyPlugin tally) {
         this.tally = tally;
+        this.game = Game.ofTag(tally.getStatsManager(), tally.getConfig().getString("gameTag", "mc-java"));
     }
 
     /**
@@ -56,35 +63,25 @@ public class TallyOperationHandler {
      */
     public void track(String type, UUID actor, UUID recvr, boolean hidden, JsonObject extras, List<String> labels) {
         extras.addProperty("instance_host", TallyUtils.getSelfIP());
-        String information = ("type: " + type == null ? "null" : type)
+        String information = ("type: " + (type == null ? "null" : type))
                 + "; actor: " + (actor == null ? "null" : actor.toString())
                 + "; recvr: " + (recvr == null ? "null" : recvr.toString());
-
-        TallyStatsManager statsManager = TallyPlugin.getInstance().getStatsManager();
-        TallyStatsManager.DataAccessor access = statsManager.access();
-
-        String actorr = actor == null || actor.equals(DamageTrackModule.ENVIRONMENT) ? null : actor.toString();
-        String receiverr = recvr == null || recvr.equals(DamageTrackModule.ENVIRONMENT) ? null : recvr.toString();
 
         this.tally.optionalLog("Starting track task: " + information);
         this.tally.getTaskManager().async(() -> {
             this.tally.optionalLog("Tally tracking: " + information);
-            long id;
-            while((id =
-                    access.addStatistic(
-                            type,
-                            access.getGame(TallyPlugin.TALLY_MINECRAFT_JAVA_EDITION),
-                            actorr,
-                            receiverr,
-                            hidden,
-                            extras,
-                            labels))
-                    == -1) {
-                this.tally.getLogger().warning("Failed tracking: " + information + "(-1); will retry.");
-                Threading.sleep(5000);
-            }
-            this.tally.optionalLog("Tracked with id: " + id + " (" + information + ")");
-            this.tally.optionalLog("Tally tracked: " + information);
+            String actorr = actor == null || actor.equals(DamageTrackModule.ENVIRONMENT) ? null : actor.toString();
+            String receiverr = recvr == null || recvr.equals(DamageTrackModule.ENVIRONMENT) ? null : recvr.toString();
+            TallyStatsManager mgr = TallyPlugin.getInstance().getStatsManager();
+            Player causedBy = Player.of(mgr, this.game, actorr);
+            Player actedOn = Player.of(mgr, this.game, receiverr);
+            Statistic statistic = Statistic.of(mgr, this.game, "1", mgr.getInstance());
+            Label.of(mgr, type).link(mgr, statistic, true);
+            List<Label> createdLabels = labels.stream().map(sl -> Label.of(mgr, sl)).collect(Collectors.toList());
+            createdLabels.forEach(l -> l.link(mgr, statistic, false));
+
+            // TODO: metadata in extras
+            this.tally.optionalLog("Tracked with id: " + statistic.getId() + " (" + information + ")");
         });
         this.tally.optionalLog("Started track task: " + information);
     }
