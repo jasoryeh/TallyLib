@@ -1,5 +1,7 @@
 package tk.jasonho.tally.api.models;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import lombok.Data;
 import lombok.SneakyThrows;
@@ -39,6 +41,10 @@ public class Statistic extends Model {
         return build;
     }
 
+    public StatLink causalLink(TallyStatsManager mgr, Player player) {
+        return this.causalLink(mgr, player, null);
+    }
+
     @SneakyThrows
     public StatLink ownsLink(TallyStatsManager mgr, Player player, String role) {
         StatLink build = StatLink.builder()
@@ -47,6 +53,24 @@ public class Statistic extends Model {
                 .role(role)
                 .build();
         build.saveAsOwns(mgr);
+        return build;
+    }
+
+    public StatLink ownsLink(TallyStatsManager mgr, Player player) {
+        return this.ownsLink(mgr, player, null);
+    }
+
+    public StatMetadata attachMetadata(TallyStatsManager mgr, JsonElement data) {
+        return this.attachMetadata(mgr, "data", data);
+    }
+
+    public StatMetadata attachMetadata(TallyStatsManager mgr, String key, JsonElement data) {
+        StatMetadata build = StatMetadata.builder()
+                .statistic(this.id)
+                .key(key)
+                .value(new Gson().toJson(data))
+                .build();
+        build.save(mgr);
         return build;
     }
 
