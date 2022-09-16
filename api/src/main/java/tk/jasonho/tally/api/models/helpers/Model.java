@@ -106,11 +106,11 @@ public abstract class Model {
     @SneakyThrows
     public static void main(String[] args) {
         TallyConfiguration config = new TallyConfiguration(
-                "https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-98055e97-4e6f-47d5-8b7c-0b99eb9a7add/tally",
+                "http://localhost/tally/api",
                 "testtoken",
                 new ArrayList<>()
         );
-        config.setTestRoute("index");
+        config.setTestRoute("");
 
         TallyStatsManager mgr = new TallyStatsManager(config);
 
@@ -121,7 +121,7 @@ public abstract class Model {
         Instance instance = Instance.of(mgr, "test-id", "123.0.0.1");
         System.out.println(instance);
 
-        Game mcj = Game.ofTag(mgr, "mcj");
+        Game mcj = Game.ofTag(mgr, "mc-java");
         System.out.println(mcj);
 
         Label test = Label.of(mgr, "test");
@@ -138,13 +138,22 @@ public abstract class Model {
 
         Statistic stat1 = Statistic.of(mgr, mcj, "some score here", instance);
         System.out.println("-------------------------------links");
-        stat1.causalLink(mgr, player1, "role1");
-        stat1.ownsLink(mgr, player2, "role2");
         System.out.println(stat1);
-
+        StatLink link1 = stat1.causalLink(mgr, player1, "role1");
+        System.out.println("causal:");
+        System.out.println(link1);
+        StatLink link2 = stat1.ownsLink(mgr, player2, "role2");
+        System.out.println("owns:");
+        System.out.println(link2);
         System.out.println("-------------------------------labelinks");
-        stat1.link(mgr, test, true);
-        stat1.link(mgr, test1, false);
-        stat1.link(mgr, test2, false);
+        LabelLink label1 = stat1.link(mgr, test, true);
+        System.out.println("primary label:");
+        System.out.println(label1);
+        LabelLink label2 = stat1.link(mgr, test1, false);
+        System.out.println("nonprimary label1:");
+        System.out.println(label2);
+        LabelLink label3 = stat1.link(mgr, test2, false);
+        System.out.println("nonprimary label2:");
+        System.out.println(label3);
     }
 }
