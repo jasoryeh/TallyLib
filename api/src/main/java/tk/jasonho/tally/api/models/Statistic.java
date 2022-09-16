@@ -26,8 +26,8 @@ public class Statistic extends Model {
 
     public Statistic() {}
 
-    public void link(TallyStatsManager mgr, Label label, boolean primary) {
-        label.link(mgr, this, primary);
+    public LabelLink link(TallyStatsManager mgr, Label label, boolean primary) {
+        return label.link(mgr, this, primary);
     }
 
     @SneakyThrows
