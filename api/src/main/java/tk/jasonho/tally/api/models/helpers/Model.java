@@ -25,6 +25,9 @@ public abstract class Model {
     @SneakyThrows
     protected void updateWith(Model dummy) {
         for (Field declaredField : this.getClass().getDeclaredFields()) {
+            if (!declaredField.isAnnotationPresent(MapsTo.class)) {
+                continue;
+            }
             declaredField.setAccessible(true);
             declaredField.set(this, declaredField.get(dummy));
         }
