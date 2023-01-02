@@ -18,6 +18,7 @@ public class LabelLink extends Model {
     private Integer label;
     @MapsTo("statistic")
     private Integer statistic;
+    @Deprecated
     @MapsTo("primary")
     private Boolean primary;
 

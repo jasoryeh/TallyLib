@@ -23,9 +23,11 @@ public class StatLink extends Model {
 
     public StatLink() {}
 
+    @Deprecated
     @SneakyThrows
     public void saveAsCausal(TallyStatsManager manager) {
-        manager.connectionBuilder("statistic/link/causal")
+        this.role = "tally_causal" + (this.role != null ? " " + this.role : "");
+        manager.connectionBuilder("statistic/link")
                 .post()
                 .writeJson(
                         Model.serialize(this)
@@ -33,9 +35,11 @@ public class StatLink extends Model {
                 .verifyJsonThrowing();
     }
 
+    @Deprecated
     @SneakyThrows
     public void saveAsOwns(TallyStatsManager manager) {
-        manager.connectionBuilder("statistic/link/owns")
+        this.role = "tally_own" + (this.role != null ? " " + this.role : "");
+        manager.connectionBuilder("statistic/link")
                 .post()
                 .writeJson(
                         Model.serialize(this)
