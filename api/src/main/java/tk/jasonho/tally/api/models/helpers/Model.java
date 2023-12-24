@@ -42,15 +42,19 @@ public abstract class Model {
     }
 
     public static <T extends Model> JsonObject serialize(T model) throws Exception {
+        optionalLog("Serializing " + model.getClass().getName());
         JsonObject jsonObject = new JsonObject();
         Class<? extends Model> clazz = model.getClass();
         for (Field declaredField : clazz.getDeclaredFields()) {
+            optionalLog("  ..." + declaredField.getName());
             declaredField.setAccessible(true);
             MapsTo[] annotationsByType = declaredField.getAnnotationsByType(MapsTo.class);
             Object value = declaredField.get(model);
+            optionalLog("    " + annotationsByType.length + "x@MapsTo");
 
             for (MapsTo mapsTo : annotationsByType) {
                 for (String mapping : mapsTo.value()) {
+                    optionalLog("    ...@MapsTo=" + mapping);
                     if (value instanceof Number) {
                         jsonObject.addProperty(mapping, ((Number) value));
                     } else if (value instanceof String) {
@@ -62,15 +66,19 @@ public abstract class Model {
                     } else if (value == null) {
                         jsonObject.add(mapping, JsonNull.INSTANCE);
                     } else {
+                        optionalLog("      ...could not map");
                         throw new Exception("Serialization of non-primitive mapping is not currently supported!");
                     }
+                    optionalLog("      ...mapped");
                 }
             }
         }
+        optionalLog("Serialized: " + jsonObject.toString());
         return jsonObject;
     }
 
     public static <T extends Model> T deserialize(Class<T> clazz, JsonObject json) throws Exception {
+        optionalLog("Deserializing " + json.toString() + " to a " + clazz.getName());
         HashMap<String, Field> fieldMaps = new HashMap<>();
         for (Field declaredField : clazz.getDeclaredFields()) {
             optionalLog("Field: " + declaredField.getName());
@@ -90,7 +98,7 @@ public abstract class Model {
 
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
-            optionalLog("Serializing " + key);
+            optionalLog("Deserializing " + key);
             if (fieldMaps.containsKey(key)) {
                 Field field = fieldMaps.get(key);
                 field.setAccessible(true);
@@ -107,16 +115,17 @@ public abstract class Model {
                     } else if (asJsonPrimitive.isNumber()) {
                         field.set(t, asJsonPrimitive.getAsInt());
                     } else {
-                        optionalLog("  failed serializing unsupported primitive " + key);
+                        optionalLog("  failed deserializing unsupported primitive " + key);
                         throw new UnsupportedOperationException("Cannot deserialize to other primitive types yet!");
                         // todo: deserialize to other types
                     }
                 } else {
-                    optionalLog("  failed serializing unsupported type " + key);
+                    optionalLog("  failed deserializing unsupported type " + key);
                     throw new Exception("Cannot currently deserialize non-primitives and non-nulls: at " + key);
                 }
             }
         }
+        optionalLog("Deserialized to " + t.toString());
         return t;
     }
 
