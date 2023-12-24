@@ -8,6 +8,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import tk.jasonho.tally.api.TallyConfiguration;
 import tk.jasonho.tally.api.TallyStatsManager;
+import tk.jasonho.tally.api.models.helpers.Model;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +32,8 @@ public class TallyPlugin extends JavaPlugin {
     @Getter
     protected BukkitCombatListener combatListener;
 
+    protected boolean verbose;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -39,6 +42,9 @@ public class TallyPlugin extends JavaPlugin {
         this.saveDefaultConfig();
         this.reloadConfig();
         this.getConfig();
+
+        this.verbose = this.getConfig().getBoolean("verbose", false);
+        Model.verbose = this.verbose;
 
         this.labels = (this.getConfig().contains("labels") && this.getConfig().isList("labels")) ?
                 this.getConfig().getStringList("labels") : new ArrayList<>();
@@ -130,7 +136,7 @@ public class TallyPlugin extends JavaPlugin {
     }
 
     public void optionalLog(String string) {
-        if(this.getConfig().getBoolean("verbose", false)) {
+        if(this.verbose) {
             this.getLogger().info("[Verbose] " + string);
         } else {
             this.getLogger().finest("[Verbose (off)] " + string);

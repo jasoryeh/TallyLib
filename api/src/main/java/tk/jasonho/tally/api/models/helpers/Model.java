@@ -18,6 +18,14 @@ import java.util.Map;
 
 @ToString
 public abstract class Model {
+    public static boolean verbose;
+
+    public static void optionalLog(String string) {
+        if(verbose) {
+            System.out.println("[Verbose] " + string);
+        }
+    }
+
     public Model() {
 
     }
@@ -65,10 +73,13 @@ public abstract class Model {
     public static <T extends Model> T deserialize(Class<T> clazz, JsonObject json) throws Exception {
         HashMap<String, Field> fieldMaps = new HashMap<>();
         for (Field declaredField : clazz.getDeclaredFields()) {
+            optionalLog("Field: " + declaredField.getName());
             MapsTo[] annotationsByType = declaredField.getAnnotationsByType(MapsTo.class);
 
             for (MapsTo mapsTo : annotationsByType) {
+                optionalLog("  MapsTo...");
                 for (String maps : mapsTo.value()) {
+                    optionalLog("      ..." + mapsTo.value());
                     fieldMaps.put(maps, declaredField);
                 }
             }
@@ -79,6 +90,7 @@ public abstract class Model {
 
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
+            optionalLog("Serializing " + key);
             if (fieldMaps.containsKey(key)) {
                 Field field = fieldMaps.get(key);
                 field.setAccessible(true);
@@ -95,10 +107,12 @@ public abstract class Model {
                     } else if (asJsonPrimitive.isNumber()) {
                         field.set(t, asJsonPrimitive.getAsInt());
                     } else {
+                        optionalLog("  failed serializing unsupported primitive " + key);
                         throw new UnsupportedOperationException("Cannot deserialize to other primitive types yet!");
                         // todo: deserialize to other types
                     }
                 } else {
+                    optionalLog("  failed serializing unsupported type " + key);
                     throw new Exception("Cannot currently deserialize non-primitives and non-nulls: at " + key);
                 }
             }
