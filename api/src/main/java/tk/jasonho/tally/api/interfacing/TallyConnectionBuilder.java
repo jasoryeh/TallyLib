@@ -140,6 +140,7 @@ public class TallyConnectionBuilder {
 
             if (this.responseErrored(asJsonObject)) {
                 TallyLogger.say("An error was produced in request: " + message);
+                TallyLogger.say(asJsonObject.toString());
                 return false;
             }
 
