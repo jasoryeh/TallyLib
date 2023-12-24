@@ -8,6 +8,7 @@ import tk.jasonho.tally.api.util.TallyUtils;
 import tk.jasonho.tally.api.util.Threading;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -67,8 +68,8 @@ public class TallyOperationHandler {
         this.tally.optionalLog("Starting track task: " + information);
         this.tally.getTaskManager().async(() -> {
             this.tally.optionalLog("Tally tracking: " + information);
-            String actorr = actor == null || actor.equals(DamageTrackModule.ENVIRONMENT) ? null : actor.toString();
-            String receiverr = recvr == null || recvr.equals(DamageTrackModule.ENVIRONMENT) ? null : recvr.toString();
+            String actorr = Optional.of(actor).orElse(DamageTrackModule.ENVIRONMENT).toString();
+            String receiverr = Optional.of(recvr).orElse(DamageTrackModule.ENVIRONMENT).toString();
 
             TallyStatsManager mgr = TallyPlugin.getInstance().getStatsManager();
             Player causedBy = Player.of(mgr, this.game, actorr);
