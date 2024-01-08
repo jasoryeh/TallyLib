@@ -68,8 +68,8 @@ public class TallyOperationHandler {
         this.tally.optionalLog("Starting track task: " + information);
         this.tally.getTaskManager().async(() -> {
             this.tally.optionalLog("Tally tracking: " + information);
-            String actorr = Optional.of(actor).orElse(DamageTrackModule.ENVIRONMENT).toString();
-            String receiverr = Optional.of(recvr).orElse(DamageTrackModule.ENVIRONMENT).toString();
+            String actorr = Optional.ofNullable(actor).orElse(DamageTrackModule.ENVIRONMENT).toString();
+            String receiverr = Optional.ofNullable(recvr).orElse(DamageTrackModule.ENVIRONMENT).toString();
 
             TallyStatsManager mgr = TallyPlugin.getInstance().getStatsManager();
             Player causedBy = Player.of(mgr, this.game, actorr);
