@@ -8,7 +8,7 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import tk.jasonho.tally.api.TallyConfiguration;
 import tk.jasonho.tally.api.TallyStatsManager;
-import tk.jasonho.tally.api.models.helpers.Model;
+import tk.jasonho.tally.api.util.TallyLogger;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,7 +44,7 @@ public class TallyPlugin extends JavaPlugin {
         this.getConfig();
 
         this.verbose = this.getConfig().getBoolean("verbose", false);
-        Model.verbose = this.verbose;
+        TallyLogger.verbose = this.verbose;
 
         this.labels = (this.getConfig().contains("labels") && this.getConfig().isList("labels")) ?
                 this.getConfig().getStringList("labels") : new ArrayList<>();

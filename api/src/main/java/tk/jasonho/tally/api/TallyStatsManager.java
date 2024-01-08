@@ -4,6 +4,7 @@ import java.util.UUID;
 import lombok.Getter;
 import tk.jasonho.tally.api.interfacing.TallyConnectionBuilder;
 import tk.jasonho.tally.api.models.Instance;
+import tk.jasonho.tally.api.util.TallyLogger;
 import tk.jasonho.tally.api.util.TallyUtils;
 
 @Getter
@@ -28,6 +29,7 @@ public class TallyStatsManager {
      * @return Connection builder
      */
     public TallyConnectionBuilder connectionBuilder(String route) {
+        TallyLogger.optionalLog("Create connection: " + route);
         return new TallyConnectionBuilder(
                 this.configuration.ofRoute(route)
         ).authBearer(this.configuration.getAuth());

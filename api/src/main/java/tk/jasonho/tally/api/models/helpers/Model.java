@@ -9,6 +9,7 @@ import lombok.ToString;
 import tk.jasonho.tally.api.TallyConfiguration;
 import tk.jasonho.tally.api.TallyStatsManager;
 import tk.jasonho.tally.api.models.*;
+import tk.jasonho.tally.api.util.TallyLogger;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -18,13 +19,6 @@ import java.util.Map;
 
 @ToString
 public abstract class Model {
-    public static boolean verbose;
-
-    public static void optionalLog(String string) {
-        if(verbose) {
-            System.out.println("[Verbose] " + string);
-        }
-    }
 
     public Model() {
 
@@ -42,19 +36,19 @@ public abstract class Model {
     }
 
     public static <T extends Model> JsonObject serialize(T model) throws Exception {
-        optionalLog("Serializing " + model.getClass().getName());
+        TallyLogger.optionalLog("Serializing " + model.getClass().getName());
         JsonObject jsonObject = new JsonObject();
         Class<? extends Model> clazz = model.getClass();
         for (Field declaredField : clazz.getDeclaredFields()) {
-            optionalLog("  ..." + declaredField.getName());
+            TallyLogger.optionalLog("  ..." + declaredField.getName());
             declaredField.setAccessible(true);
             MapsTo[] annotationsByType = declaredField.getAnnotationsByType(MapsTo.class);
             Object value = declaredField.get(model);
-            optionalLog("    " + annotationsByType.length + "x@MapsTo");
+            TallyLogger.optionalLog("    " + annotationsByType.length + "x@MapsTo");
 
             for (MapsTo mapsTo : annotationsByType) {
                 for (String mapping : mapsTo.value()) {
-                    optionalLog("    ...@MapsTo=" + mapping);
+                    TallyLogger.optionalLog("    ...@MapsTo=" + mapping);
                     if (value instanceof Number) {
                         jsonObject.addProperty(mapping, ((Number) value));
                     } else if (value instanceof String) {
@@ -66,28 +60,28 @@ public abstract class Model {
                     } else if (value == null) {
                         jsonObject.add(mapping, JsonNull.INSTANCE);
                     } else {
-                        optionalLog("      ...could not map");
+                        TallyLogger.optionalLog("      ...could not map");
                         throw new Exception("Serialization of non-primitive mapping is not currently supported!");
                     }
-                    optionalLog("      ...mapped");
+                    TallyLogger.optionalLog("      ...mapped");
                 }
             }
         }
-        optionalLog("Serialized: " + jsonObject.toString());
+        TallyLogger.optionalLog("Serialized: " + jsonObject.toString());
         return jsonObject;
     }
 
     public static <T extends Model> T deserialize(Class<T> clazz, JsonObject json) throws Exception {
-        optionalLog("Deserializing " + json.toString() + " to a " + clazz.getName());
+        TallyLogger.optionalLog("Deserializing " + json.toString() + " to a " + clazz.getName());
         HashMap<String, Field> fieldMaps = new HashMap<>();
         for (Field declaredField : clazz.getDeclaredFields()) {
-            optionalLog("Field: " + declaredField.getName());
+            TallyLogger.optionalLog("Field: " + declaredField.getName());
             MapsTo[] annotationsByType = declaredField.getAnnotationsByType(MapsTo.class);
 
             for (MapsTo mapsTo : annotationsByType) {
-                optionalLog("  MapsTo...");
+                TallyLogger.optionalLog("  MapsTo...");
                 for (String maps : mapsTo.value()) {
-                    optionalLog("      ..." + mapsTo.value());
+                    TallyLogger.optionalLog("      ..." + mapsTo.value());
                     fieldMaps.put(maps, declaredField);
                 }
             }
@@ -98,7 +92,7 @@ public abstract class Model {
 
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
-            optionalLog("Deserializing " + key);
+            TallyLogger.optionalLog("Deserializing " + key);
             if (fieldMaps.containsKey(key)) {
                 Field field = fieldMaps.get(key);
                 field.setAccessible(true);
@@ -115,17 +109,17 @@ public abstract class Model {
                     } else if (asJsonPrimitive.isNumber()) {
                         field.set(t, asJsonPrimitive.getAsInt());
                     } else {
-                        optionalLog("  failed deserializing unsupported primitive " + key);
+                        TallyLogger.optionalLog("  failed deserializing unsupported primitive " + key);
                         throw new UnsupportedOperationException("Cannot deserialize to other primitive types yet!");
                         // todo: deserialize to other types
                     }
                 } else {
-                    optionalLog("  failed deserializing unsupported type " + key);
+                    TallyLogger.optionalLog("  failed deserializing unsupported type " + key);
                     throw new Exception("Cannot currently deserialize non-primitives and non-nulls: at " + key);
                 }
             }
         }
-        optionalLog("Deserialized to " + t.toString());
+        TallyLogger.optionalLog("Deserialized to " + t.toString());
         return t;
     }
 
