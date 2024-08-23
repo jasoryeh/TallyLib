@@ -24,7 +24,7 @@ public class TallyConfiguration {
     @Getter
     private final List<String> labels = new ArrayList<>();
 
-    public static final String DEFAULT_STATS_HOST = "https://tally.hogt.me/";
+    public static final String DEFAULT_STATS_HOST = "https://api.tally.projects.hogt.me/tally/api";
 
     @SneakyThrows
     public TallyConfiguration(String host, String auth, List<String> labels) {

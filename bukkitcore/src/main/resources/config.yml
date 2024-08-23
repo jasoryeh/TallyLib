@@ -1,4 +1,4 @@
-host: https://stats.jasoryeh.tk/
+host: https://api.tally.projects.hogt.me/tally/api
 auth: token
 verbose: false
 gameTag: mcj
