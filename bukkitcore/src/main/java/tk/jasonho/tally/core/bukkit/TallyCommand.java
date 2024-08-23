@@ -1,9 +1,12 @@
 package tk.jasonho.tally.core.bukkit;
 
+import java.util.Arrays;
 import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
+import org.bukkit.scheduler.BukkitTask;
+import tk.jasonho.tally.api.TallyConfiguration;
 import tk.jasonho.tally.api.models.Statistic;
 
 import java.util.ArrayList;
@@ -26,45 +29,69 @@ class TallyCommand extends BukkitCommand {
         this.tally = tally;
     }
 
+    private boolean invalidUsage(CommandSender commandSender) {
+        commandSender.sendMessage(ChatColor.RED + INVALID_USAGE + " " + this.usageMessage);
+        return true;
+    }
+
     @Override
     public boolean execute(CommandSender commandSender, String s, String[] strings) {
-        if(strings.length < 2) {
-            if(strings.length > 0) {
-                String mode = strings[0];
-                if(mode.equalsIgnoreCase("list")) {
-                    commandSender.sendMessage(ChatColor.GREEN + "Labels: "
-                            + this.tally.getLabels().stream().collect(Collectors.joining(", ")));
-                    return true;
-                } else if(mode.equalsIgnoreCase("tasks")) {
-                    commandSender.sendMessage("Tasks: " + this.tally.getTaskManager().getTasks()
-                            .stream()
-                            .map(t -> t.getTaskId() + "")
-                            .collect(Collectors.joining(", ")));
-                    return true;
-                } else if(mode.equalsIgnoreCase("stats")) {
-                    commandSender.sendMessage("Stored " + Statistic.handledSoFar.get() + " stats.");
-                } else if(mode.equalsIgnoreCase("instance")) {
-                    commandSender.sendMessage("ID: " + this.tally.getStatsManager().getInstance().getSelfid());
-                }
-            }
-            commandSender.sendMessage(ChatColor.RED + INVALID_USAGE + this.usageMessage);
-        } else {
-            String mode = strings[0];
-                for (int i = 0; i < strings.length; i++) {
-                    // /tally addlabel label1 label2 label3 label4
-                    // index: 0        1      2      3      4
-                    if(i > 0) {
-                        String label = strings[i];
-                        if(mode.equalsIgnoreCase("addlabel")) {
-                            this.tally.getLabels().add(label);
-                            commandSender.sendMessage(ChatColor.GREEN + "+ " + label);
-                        } else if(mode.equalsIgnoreCase("removelabel")) {
-                            this.tally.getLabels().remove(label);
-                            commandSender.sendMessage(ChatColor.RED + "- " + label);
-                        }
-                    }
-                }
+        if (strings.length <= 0) {
+            return invalidUsage(commandSender);
         }
-        return true;
+
+        String mode = strings[0];
+        switch (mode.toLowerCase()) {
+            case "list":
+                List<String> activeLabels = this.tally.getLabels();
+                commandSender.sendMessage(ChatColor.GREEN + "Tally is labelling statistics with these labels:");
+                for (String label : activeLabels) {
+                    commandSender.sendMessage(ChatColor.GREEN + " - " + label);
+                }
+                return true;
+            case "tasks":
+                List<BukkitTask> tasks = this.tally.getTaskManager().getTasks();
+                commandSender.sendMessage(ChatColor.YELLOW + "Tally is executing " + tasks.size() + " tasks in the background:");
+                for (BukkitTask task : tasks) {
+                    commandSender.sendMessage(ChatColor.YELLOW + " " + task.getTaskId() + ". "
+                            + "Executing " + ((task.isSync()) ? " synchronously" : "asynchronously") + " "
+                            + "for " + task.getOwner().getName());
+                }
+                return true;
+            case "stats":
+                commandSender.sendMessage(ChatColor.AQUA + "Tally has processed "
+                        + Statistic.handledSoFar.get()
+                        + " statistics in this instance.");
+                return true;
+            case "instance":
+                TallyConfiguration configuration = this.tally.getStatsManager().getConfiguration();
+                commandSender.sendMessage(ChatColor.GREEN + "Tally Instance Self Identifier: "
+                        + this.tally.getStatsManager().getInstance().getSelfid());
+                return true;
+            case "addlabel":
+                if (strings.length <= 1) {
+                    commandSender.sendMessage(ChatColor.YELLOW + "No labels were added!");
+                    return true;
+                }
+                String[] labelsToAdd = Arrays.copyOfRange(strings, 1, strings.length);
+                for (String label : labelsToAdd) {
+                    this.tally.getLabels().add(label);
+                    commandSender.sendMessage(ChatColor.GREEN + "Added label: " + label);
+                }
+                return true;
+            case "removelabel":
+                if (strings.length <= 1) {
+                    commandSender.sendMessage(ChatColor.YELLOW + "No labels were removed!");
+                    return true;
+                }
+                String[] labelsToRemove = Arrays.copyOfRange(strings, 1, strings.length);
+                for (String label : labelsToRemove) {
+                    this.tally.getLabels().remove(label);
+                    commandSender.sendMessage(ChatColor.RED + "Removed label: " + label);
+                }
+                return true;
+            default:
+                return false;
+        }
     }
 }
