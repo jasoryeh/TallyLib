@@ -3,3 +3,4 @@ auth: token
 verbose: false
 gameTag: mcj
 index: ""
+#summaryUrl: https://api.tally.projects.hogt.me/tally/api/summary/instance?instance={INSTANCE}

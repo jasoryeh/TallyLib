@@ -10,7 +10,7 @@ import tk.jasonho.tally.api.TallyConfiguration;
 import tk.jasonho.tally.api.models.Statistic;
 
 import java.util.ArrayList;
-import java.util.stream.Collectors;
+import java.util.regex.Pattern;
 
 class TallyCommand extends BukkitCommand {
     private static final String INVALID_USAGE = "Invalid usage! Please double check that you used this command correctly!";
@@ -67,6 +67,13 @@ class TallyCommand extends BukkitCommand {
                 TallyConfiguration configuration = this.tally.getStatsManager().getConfiguration();
                 commandSender.sendMessage(ChatColor.GREEN + "Tally Instance Self Identifier: "
                         + this.tally.getStatsManager().getInstance().getSelfid());
+                return true;
+            case "summary":
+                commandSender.sendMessage(ChatColor.GREEN + "Tally Statistics Data for this instance (" +
+                        this.tally.getStatsManager().getInstance().getSelfid() + "): " +
+                        this.tally.getSummaryURL().replaceAll(
+                                Pattern.quote("{INSTANCE}"),
+                                this.tally.getStatsManager().getInstance().getSelfid()));
                 return true;
             case "addlabel":
                 if (strings.length <= 1) {

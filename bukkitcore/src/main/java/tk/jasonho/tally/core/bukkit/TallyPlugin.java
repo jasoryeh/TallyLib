@@ -32,6 +32,10 @@ public class TallyPlugin extends JavaPlugin {
     @Getter
     protected BukkitCombatListener combatListener;
 
+    @Getter
+    @Setter
+    protected String summaryURL;
+
     protected boolean verbose;
 
     @Override
@@ -55,6 +59,11 @@ public class TallyPlugin extends JavaPlugin {
                         this.getConfig().getString("auth"),
                         ((List<String>) this.getConfig().getList("labels", new ArrayList<>())))
         );
+
+
+        this.summaryURL = this.getConfig().contains("summaryUrl") ?
+                this.getConfig().getString("summaryUrl") :
+                this.statsManager.getConfiguration().ofRoute("summary/instance?instance={INSTANCE}");
 
         this.taskManager = new TallyThreading(this);
         this.operationHandler = new TallyOperationHandler(this);
