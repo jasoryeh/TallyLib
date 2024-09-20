@@ -14,6 +14,7 @@ import tk.jasonho.tally.api.util.TallyLogger;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,6 +83,7 @@ public abstract class Model {
                 TallyLogger.optionalLog("  MapsTo...");
                 for (String maps : mapsTo.value()) {
                     TallyLogger.optionalLog("      ..." + mapsTo.value());
+                    TallyLogger.optionalLog("      ..." + Arrays.toString(mapsTo.value()));
                     fieldMaps.put(maps, declaredField);
                 }
             }
