@@ -60,7 +60,6 @@ public class TallyOperationHandler {
      * @param labels Labels this statistic
      */
     public void track(String type, UUID actor, UUID recvr, boolean hidden, JsonObject extras, List<String> labels) {
-        extras.addProperty("instance_host", TallyUtils.getSelfIP());
         String information = ("type: " + (type == null ? "null" : type))
                 + "; actor: " + (actor == null ? "null" : actor.toString())
                 + "; recvr: " + (recvr == null ? "null" : recvr.toString());
