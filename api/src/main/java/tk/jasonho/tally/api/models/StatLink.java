@@ -27,18 +27,18 @@ public class StatLink extends Model {
     @SneakyThrows
     public void saveAsCausal(TallyStatsManager manager) {
         this.role = "tally_causal" + (this.role != null ? " " + this.role : "");
-        manager.connectionBuilder("statistic/link")
-                .post()
-                .writeJson(
-                        Model.serialize(this)
-                )
-                .verifyJsonThrowing();
+        this.save(manager);
     }
 
     @Deprecated
     @SneakyThrows
     public void saveAsOwns(TallyStatsManager manager) {
         this.role = "tally_own" + (this.role != null ? " " + this.role : "");
+        this.save(manager);
+    }
+
+    @SneakyThrows
+    public void save(TallyStatsManager manager) {
         manager.connectionBuilder("statistic/link")
                 .post()
                 .writeJson(

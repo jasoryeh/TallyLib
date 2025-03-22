@@ -9,6 +9,7 @@ import tk.jasonho.tally.api.TallyStatsManager;
 import tk.jasonho.tally.api.models.helpers.MapsTo;
 import tk.jasonho.tally.api.models.helpers.Model;
 
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Data
@@ -30,6 +31,17 @@ public class Statistic extends Model {
         return label.link(mgr, this, primary);
     }
 
+    public StatLink link(TallyStatsManager mgr, Player player, String role) {
+        StatLink build = StatLink.builder()
+                .player(player.getId())
+                .statistic(this.id)
+                .role(Objects.requireNonNull(role))
+                .build();
+        build.save(mgr);
+        return build;
+    }
+
+    @Deprecated
     @SneakyThrows
     public StatLink causalLink(TallyStatsManager mgr, Player player, String role) {
         StatLink build = StatLink.builder()
@@ -41,10 +53,12 @@ public class Statistic extends Model {
         return build;
     }
 
+    @Deprecated
     public StatLink causalLink(TallyStatsManager mgr, Player player) {
         return this.causalLink(mgr, player, null);
     }
 
+    @Deprecated
     @SneakyThrows
     public StatLink ownsLink(TallyStatsManager mgr, Player player, String role) {
         StatLink build = StatLink.builder()
@@ -56,6 +70,7 @@ public class Statistic extends Model {
         return build;
     }
 
+    @Deprecated
     public StatLink ownsLink(TallyStatsManager mgr, Player player) {
         return this.ownsLink(mgr, player, null);
     }
