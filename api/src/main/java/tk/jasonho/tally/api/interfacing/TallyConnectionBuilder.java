@@ -11,16 +11,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+@Getter
 public class TallyConnectionBuilder {
-
-    @Getter
     private final String host;
-    @Getter
     private final HttpURLConnection connection;
+
+    private void log(String s) {
+        TallyLogger.optionalLog(s);
+    }
 
     @SneakyThrows
     public TallyConnectionBuilder(String host) {
-        TallyLogger.optionalLog("TallyConnectionBuilder: " + host);
+        log("TallyConnectionBuilder: " + host);
         this.host = host;
         this.connection = ((HttpURLConnection) new URL(this.host).openConnection());
         this.header("User-Agent", "Tally/Java");
@@ -31,7 +33,7 @@ public class TallyConnectionBuilder {
      */
     @SneakyThrows
     private TallyConnectionBuilder withMethod(String method) {
-        TallyLogger.optionalLog("  ...method: " + method);
+        log("  ...method: " + method);
         this.connection.setRequestMethod(method);
         return this;
     }
@@ -47,7 +49,7 @@ public class TallyConnectionBuilder {
     }
 
     public TallyConnectionBuilder header(String key, String val) {
-        TallyLogger.optionalLog("  ...header: " + key + " => " + val);
+        log("  ...header: " + key + " => " + val);
         this.connection.setRequestProperty(key, val);
         return this;
     }
@@ -64,14 +66,14 @@ public class TallyConnectionBuilder {
 
     public TallyConnectionBuilder writeJson(JsonElement json) {
         String body = new Gson().toJson(json);
-        TallyLogger.optionalLog("  ...JSON to body: " + body);
+        log("  ...JSON to body: " + body);
         this.json().writeOut(body);
         return this;
     }
 
     @SneakyThrows
     public TallyConnectionBuilder writeOut(String string) {
-        TallyLogger.optionalLog("Writing out to " + this.host + ": " + string);
+        log("Writing out to " + this.host + ": " + string);
         this.connection.setDoOutput(true);
         byte[] bytes = string.getBytes(StandardCharsets.UTF_8);
         this.connection.setFixedLengthStreamingMode(bytes.length);
@@ -81,7 +83,6 @@ public class TallyConnectionBuilder {
         return this;
     }
 
-    @Getter
     public String read;
 
     public JsonElement getReadJson() throws JsonSyntaxException {
@@ -148,7 +149,7 @@ public class TallyConnectionBuilder {
                 return false;
             }
 
-            TallyLogger.optionalLog("Validated response.");
+            log("Validated response.");
             return true;
         } catch(Exception e) {
             TallyLogger.say("Error produced whilst verifying json request.");
@@ -157,26 +158,30 @@ public class TallyConnectionBuilder {
         }
     }
 
+    private static boolean isResponseSuccess(int responseCode) {
+        return responseCode >= 200 && responseCode < 300;
+    }
+
     @SneakyThrows
     public TallyConnectionBuilder readIn() {
-        TallyLogger.optionalLog("Reading in for request at " + this.host);
+        log("Reading in for request at " + this.host);
         StringBuilder stringBuilder = new StringBuilder();
-        InputStream readInStream = null;
-        if((this.connection.getResponseCode() + "").startsWith("2")) {
-            readInStream = this.connection.getInputStream();
-        } else {
-            readInStream = this.connection.getErrorStream();
+        InputStream readInStream = isResponseSuccess(this.connection.getResponseCode())
+                ? this.connection.getInputStream()
+                : this.connection.getErrorStream();
+
+        if (readInStream != null) {
+            InputStreamReader inReader = new InputStreamReader(readInStream, StandardCharsets.UTF_8);
+            BufferedReader bReader = new BufferedReader(inReader);
+            String line;
+            while((line = bReader.readLine()) != null) {
+                stringBuilder.append(line.trim());
+            }
+
+            this.read = stringBuilder.toString();
         }
 
-        InputStreamReader inReader = new InputStreamReader(readInStream, StandardCharsets.UTF_8);
-        BufferedReader bReader = new BufferedReader(inReader);
-        String line = null;
-        while((line = bReader.readLine()) != null) {
-            stringBuilder.append(line.trim());
-        }
-
-        this.read = stringBuilder.toString();
-        TallyLogger.optionalLog("Read for " + this.host + ": " + this.read);
+        log("Read for " + this.host + ": " + (this.read == null ? "(no response)" : this.read));
         return this;
     }
 }
