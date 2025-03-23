@@ -1,9 +1,6 @@
 package tk.jasonho.tally.api.models.helpers;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
 import lombok.SneakyThrows;
 import lombok.ToString;
 import tk.jasonho.tally.api.TallyConfiguration;
@@ -13,10 +10,9 @@ import tk.jasonho.tally.api.util.TallyLogger;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 @ToString
 public abstract class Model {
@@ -36,6 +32,50 @@ public abstract class Model {
         }
     }
 
+    public static JsonElement objectToJsonElement(Object value) throws Exception {
+        if (value instanceof Model) {
+            return serialize(((Model) value));
+        } else if (value instanceof Number) {
+            return new JsonPrimitive((Number) value);
+        } else if (value instanceof String) {
+            return new JsonPrimitive((String) value);
+        } else if (value instanceof Boolean) {
+            return new JsonPrimitive((Boolean) value);
+        } else if (value instanceof Character) {
+            return new JsonPrimitive((Character) value);
+        } else if (value == null) {
+            return JsonNull.INSTANCE;
+        } else if (value instanceof JsonElement) {
+            return ((JsonElement) value);
+        } else if (value instanceof Collection) {
+            JsonArray jsonArray = new JsonArray();
+            ((Collection<?>) value).forEach(new Consumer<Object>() {
+                @SneakyThrows
+                @Override
+                public void accept(Object v) {
+                    jsonArray.add(objectToJsonElement(v));
+                }
+            });
+            return jsonArray;
+        } else if (value instanceof Map) {
+            JsonObject jsonObject = new JsonObject();
+            ((Map<?, ?>) value).forEach(new BiConsumer<Object, Object>() {
+                @SneakyThrows
+                @Override
+                public void accept(Object k, Object v) {
+                    if (k == null) {
+                        throw new Exception("Mapped key cannot be null!");
+                    }
+                    jsonObject.add(k.toString(), objectToJsonElement(v));
+                }
+            });
+            return jsonObject;
+        } else {
+            TallyLogger.optionalLog("      ...could not convert to Json Element");
+            throw new Exception("Serialization of '" + value.getClass().getCanonicalName() + "' is not currently supported!");
+        }
+    }
+
     public static <T extends Model> JsonObject serialize(T model) throws Exception {
         TallyLogger.optionalLog("Serializing " + model.getClass().getName());
         JsonObject jsonObject = new JsonObject();
@@ -44,26 +84,28 @@ public abstract class Model {
             TallyLogger.optionalLog("  ..." + declaredField.getName());
             declaredField.setAccessible(true);
             MapsTo[] annotationsByType = declaredField.getAnnotationsByType(MapsTo.class);
+
+            if (annotationsByType.length <= 0) {
+                // continue early so we don't convert an unused (and potentially unsupported field)
+                continue;
+            }
+
             Object value = declaredField.get(model);
             TallyLogger.optionalLog("    " + annotationsByType.length + "x@MapsTo");
+
+            JsonElement jsonValue;
+            try {
+                jsonValue = objectToJsonElement(value);
+                TallyLogger.optionalLog("      ...converted");
+            } catch(Exception e) {
+                TallyLogger.optionalLog("      ...could not convert, " + e.getMessage());
+                throw new Exception("Serialization of this object is not currently supported!: " + value.getClass().getCanonicalName(), e);
+            }
 
             for (MapsTo mapsTo : annotationsByType) {
                 for (String mapping : mapsTo.value()) {
                     TallyLogger.optionalLog("    ...@MapsTo=" + mapping);
-                    if (value instanceof Number) {
-                        jsonObject.addProperty(mapping, ((Number) value));
-                    } else if (value instanceof String) {
-                        jsonObject.addProperty(mapping, ((String) value));
-                    } else if (value instanceof Boolean) {
-                        jsonObject.addProperty(mapping, ((Boolean) value));
-                    } else if (value instanceof Character) {
-                        jsonObject.addProperty(mapping, ((Character) value));
-                    } else if (value == null) {
-                        jsonObject.add(mapping, JsonNull.INSTANCE);
-                    } else {
-                        TallyLogger.optionalLog("      ...could not map");
-                        throw new Exception("Serialization of non-primitive mapping is not currently supported!");
-                    }
+                    jsonObject.add(mapping, jsonValue);
                     TallyLogger.optionalLog("      ...mapped");
                 }
             }
@@ -89,8 +131,27 @@ public abstract class Model {
             }
         }
 
-        Constructor<T> constructor = clazz.getConstructor();
-        T t = constructor.newInstance();
+        Constructor<T> constructor = null;
+        for (Constructor<?> clazzConstructor : clazz.getDeclaredConstructors()) {
+            if (clazzConstructor.getParameterCount() <= (clazz.isLocalClass() ? 1 : 0)) {
+                constructor = (Constructor<T>) clazzConstructor;
+            }
+        }
+
+        if (constructor == null) {
+            throw new Exception("Model Class " + clazz.getName() + " must have a valid no-args constructor.");
+        }
+
+        if (clazz.isLocalClass()) {
+            Class<?> enclosingClass = clazz.getEnclosingClass();
+            if (!Arrays.stream(enclosingClass.getConstructors()).anyMatch((cons) -> cons.getParameterCount() <= 0)) {
+                throw new Exception("Model classes nested deeper than one local class level are not supported.");
+            }
+        }
+
+        T t = clazz.isLocalClass()
+                ? constructor.newInstance(clazz.getEnclosingClass().getConstructor().newInstance())
+                : constructor.newInstance();
 
         for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
             String key = entry.getKey();
@@ -116,8 +177,16 @@ public abstract class Model {
                         // todo: deserialize to other types
                     }
                 } else {
-                    TallyLogger.optionalLog("  failed deserializing unsupported type " + key);
-                    throw new Exception("Cannot currently deserialize non-primitives and non-nulls: at " + key);
+                    if (Model.class.isAssignableFrom(field.getType())) {
+                        if (!entry.getValue().isJsonObject()) {
+                            throw new Exception("Malformed JSON, cannot deserialize non-json object to a nested model!");
+                        }
+                        field.set(t, Model.deserialize((Class<T>) field.getType(), entry.getValue().getAsJsonObject()));
+                    } else {
+                        TallyLogger.optionalLog("  failed deserializing unsupported type " + key);
+                        throw new Exception("Cannot currently deserialize: at " + key + "; type: " + field.getType().getCanonicalName());
+                    }
+
                 }
             }
         }
