@@ -20,7 +20,7 @@ public class TallyStatisticsTask extends TallyTask {
     public boolean started = false;
     public boolean finished = false;
     public Throwable failed = null;
-    private AtomicLong retries = new AtomicLong(0);
+    public AtomicLong retries = new AtomicLong(0);
 
     public static Deque<TallyStatisticsTask> taskQueue = new ConcurrentLinkedDeque<>();
     public static List<TallyStatisticsTask> tasks = new ArrayList<>();
