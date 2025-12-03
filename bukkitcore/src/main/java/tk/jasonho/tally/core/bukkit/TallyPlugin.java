@@ -86,6 +86,9 @@ public class TallyPlugin extends JavaPlugin {
         // verification
         this.statsManager.test();
 
+        // start executing
+        TallyStatisticsTask.startHandler(this);
+
         this.getLogger().info("Tally upped.");
     }
 
