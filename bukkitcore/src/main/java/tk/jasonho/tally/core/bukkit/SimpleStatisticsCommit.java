@@ -8,6 +8,7 @@ import tk.jasonho.tally.api.models.Label;
 import tk.jasonho.tally.api.models.Player;
 import tk.jasonho.tally.api.models.Statistic;
 import tk.jasonho.tally.api.util.commits.IStatisticsCommit;
+import tk.jasonho.tally.api.util.commits.StatisticsCommit;
 
 import java.util.Date;
 import java.util.List;
@@ -16,7 +17,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Accessors
-public class SimpleStatisticsCommit implements IStatisticsCommit {
+public class SimpleStatisticsCommit extends StatisticsCommit {
     public TallyPlugin tally;
     public Game game;
     public String type;
@@ -30,7 +31,8 @@ public class SimpleStatisticsCommit implements IStatisticsCommit {
 
     public SimpleStatisticsCommit(TallyPlugin tally, Game game, String type,
                                   UUID actor, java.util.UUID recvr, boolean hidden,
-                                  JsonObject extras, List<String> labels) {
+                                  JsonObject extras, List<String> labels, Date createdAt) {
+        super(createdAt == null ? new Date() : createdAt);
         this.tally = tally;
         this.game = game;
         this.type = type;
@@ -39,7 +41,7 @@ public class SimpleStatisticsCommit implements IStatisticsCommit {
         this.hidden = hidden;
         this.extras = extras;
         this.labels = labels;
-        this.createdAt = new Date();
+        this.createdAt = createdAt == null ? new Date() : createdAt;
     }
 
     public String getLogDescription() {
@@ -59,6 +61,7 @@ public class SimpleStatisticsCommit implements IStatisticsCommit {
         Player actedOn = Player.of(mgr, this.game, receiverr);
 
         Statistic statistic = Statistic.of(mgr, this.game, "1", mgr.getInstance());
+        statistic.setCreatedAt(this.createdAt.toString().replace(' ', 'T').concat("Z"));
         statistic.ownsLink(mgr, actedOn);
         statistic.causalLink(mgr, causedBy);
 

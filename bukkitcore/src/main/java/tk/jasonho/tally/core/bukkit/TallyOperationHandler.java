@@ -3,7 +3,7 @@ package tk.jasonho.tally.core.bukkit;
 import com.google.gson.JsonObject;
 import lombok.Getter;
 import tk.jasonho.tally.api.models.*;
-import tk.jasonho.tally.api.util.commits.IStatisticsCommit;
+import tk.jasonho.tally.api.util.commits.StatisticsCommit;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,11 +56,11 @@ public class TallyOperationHandler {
      */
     public void track(String type, UUID actor, UUID recvr, boolean hidden, JsonObject extras, List<String> labels) {
         this.track(
-                new SimpleStatisticsCommit(tally, game, type, actor, recvr, hidden, extras, labels)
+                new SimpleStatisticsCommit(tally, game, type, actor, recvr, hidden, extras, labels, null)
         );
     }
 
-    public void track(IStatisticsCommit commit) {
+    public void track(StatisticsCommit commit) {
         this.tally.optionalLog("Queueing track task: " + commit.getLogDescription());
         TallyStatisticsTask.submitTask(new TallyStatisticsTask(tally, commit));
         this.tally.optionalLog("Started track task: " + commit.getLogDescription());

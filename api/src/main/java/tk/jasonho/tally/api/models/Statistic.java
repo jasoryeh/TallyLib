@@ -24,6 +24,8 @@ public class Statistic extends Model {
     private String score;
     @MapsTo("instance")
     private Integer instance;
+    @MapsTo("createdAt")
+    private String createdAt;
 
     public Statistic() {}
 

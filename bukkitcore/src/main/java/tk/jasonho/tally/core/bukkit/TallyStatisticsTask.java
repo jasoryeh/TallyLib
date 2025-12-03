@@ -4,7 +4,7 @@ import com.google.gson.JsonObject;
 import lombok.experimental.Accessors;
 import tk.jasonho.tally.api.models.Game;
 import tk.jasonho.tally.api.util.TallyTask;
-import tk.jasonho.tally.api.util.commits.IStatisticsCommit;
+import tk.jasonho.tally.api.util.commits.StatisticsCommit;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedDeque;
@@ -14,7 +14,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class TallyStatisticsTask extends TallyTask {
     public TallyPlugin tally;
 
-    public IStatisticsCommit commit;
+    public StatisticsCommit commit;
 
     // state
     public boolean started = false;
@@ -27,14 +27,14 @@ public class TallyStatisticsTask extends TallyTask {
 
     public TallyStatisticsTask(TallyPlugin tally, Game game, String type,
                                UUID actor, java.util.UUID recvr, boolean hidden,
-                               JsonObject extras, List<String> labels) {
+                               JsonObject extras, List<String> labels, Date date) {
         this(
                 tally,
-                new SimpleStatisticsCommit(tally, game, type, actor, recvr, hidden, extras, labels)
+                new SimpleStatisticsCommit(tally, game, type, actor, recvr, hidden, extras, labels, date)
         );
     }
 
-    public TallyStatisticsTask(TallyPlugin tally, IStatisticsCommit commit) {
+    public TallyStatisticsTask(TallyPlugin tally, StatisticsCommit commit) {
         this.tally = tally;
         this.commit = commit;
 
