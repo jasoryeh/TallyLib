@@ -40,6 +40,10 @@ public class TallyPlugin extends JavaPlugin {
     @Setter
     protected long maxRetries;
 
+    @Getter
+    @Setter
+    protected boolean useQueue = true;
+
     protected boolean verbose;
 
     @Override
@@ -50,6 +54,8 @@ public class TallyPlugin extends JavaPlugin {
         this.saveDefaultConfig();
         this.reloadConfig();
         this.getConfig();
+
+        this.useQueue = this.getConfig().getBoolean("useQueue", true);
 
         this.verbose = this.getConfig().getBoolean("verbose", false);
         TallyLogger.verbose = this.verbose;

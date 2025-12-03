@@ -70,7 +70,11 @@ public class TallyStatisticsTask extends TallyTask {
     }
 
     public static void submitTask(TallyStatisticsTask task) {
-        task.tally.getTaskManager().async(task);
+        if (task.tally.isUseQueue()) {
+            TallyStatisticsTask.taskQueue.push(task);
+        } else {
+            task.tally.getTaskManager().async(task);
+        }
     }
 
     public static void startHandler(TallyPlugin tally) {
