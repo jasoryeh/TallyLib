@@ -36,6 +36,10 @@ public class TallyPlugin extends JavaPlugin {
     @Setter
     protected String summaryURL;
 
+    @Getter
+    @Setter
+    protected long maxRetries;
+
     protected boolean verbose;
 
     @Override
@@ -49,6 +53,8 @@ public class TallyPlugin extends JavaPlugin {
 
         this.verbose = this.getConfig().getBoolean("verbose", false);
         TallyLogger.verbose = this.verbose;
+
+        this.maxRetries = this.getConfig().contains("max_retries") ? this.getConfig().getLong("max_retries") : 3;
 
         this.labels = (this.getConfig().contains("labels") && this.getConfig().isList("labels")) ?
                 this.getConfig().getStringList("labels") : new ArrayList<>();
