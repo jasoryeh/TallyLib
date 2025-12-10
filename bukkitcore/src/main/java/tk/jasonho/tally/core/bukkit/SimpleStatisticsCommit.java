@@ -1,5 +1,6 @@
 package tk.jasonho.tally.core.bukkit;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import lombok.experimental.Accessors;
 import tk.jasonho.tally.api.TallyStatsManager;
@@ -88,7 +89,8 @@ public class SimpleStatisticsCommit extends StatisticsCommit {
         }
 
         if (this.tally.getStatsManager().isTagMatches()) {
-            JsonObject tallyMatchData = this.tally.getStatsManager().matchData.deepCopy();
+            Gson gson = this.tally.getGson();
+            JsonObject tallyMatchData = gson.fromJson(gson.toJson(this.tally.getStatsManager().matchData), JsonObject.class);
             tallyMatchData.addProperty("tally-match-id", this.tally.getStatsManager().getMatchTag());
             statistic.attachMetadata(this.tally.getStatsManager(), "tally-match", tallyMatchData);
         } else {

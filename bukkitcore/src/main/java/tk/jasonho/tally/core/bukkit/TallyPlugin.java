@@ -1,5 +1,6 @@
 package tk.jasonho.tally.core.bukkit;
 
+import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -16,6 +17,9 @@ import java.util.stream.Collectors;
 
 public class TallyPlugin extends JavaPlugin {
     protected static TallyPlugin instance;
+
+    @Getter
+    protected Gson gson = new Gson();
 
     @Getter
     protected TallyStatsManager statsManager;
