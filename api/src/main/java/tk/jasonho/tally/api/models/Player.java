@@ -56,7 +56,8 @@ public class Player extends Model {
             player.setIdentifier(identifier);
             player.save(manager);
         } else {
-            player = cache.put(cacheKey, Model.deserialize(Player.class, data.getAsJsonObject()));
+            player = Model.deserialize(Player.class, data.getAsJsonObject());
+            cache.put(cacheKey, player);
         }
         return player;
     }
