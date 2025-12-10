@@ -51,6 +51,7 @@ public class Label extends Model {
         Label label1 = new Label();
         label1.setLabel(label);
         label1.save(mgr);
-        return cache.put(label, label1);
+        cache.put(label, label1);
+        return label1;
     }
 }
