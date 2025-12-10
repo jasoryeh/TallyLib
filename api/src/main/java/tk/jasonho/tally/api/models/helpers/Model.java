@@ -103,7 +103,7 @@ public abstract class Model {
                 TallyLogger.optionalLog("      ...converted");
             } catch(Exception e) {
                 TallyLogger.optionalLog("      ...could not convert, " + e.getMessage());
-                throw new Exception("Serialization of this object is not currently supported!: " + value.getClass().getCanonicalName(), e);
+                throw new Exception("Serialization of this object is not currently supported!: " + (value == null ? "<null>" : value.getClass().getCanonicalName()), e);
             }
 
             for (MapsTo mapsTo : annotationsByType) {
