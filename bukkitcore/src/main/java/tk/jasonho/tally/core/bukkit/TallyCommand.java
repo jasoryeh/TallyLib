@@ -108,21 +108,25 @@ class TallyCommand extends BukkitCommand {
                 if (strings.length <= 1) {
                     commandSender.sendMessage(ChatColor.YELLOW + "Tagging Hidden Metadata: " + (this.tally.getStatsManager().isTagHiddenMetadata() ? "Enabled" : "Disabled"));
                 }
+                return true;
             case "match":
                 if (strings.length <= 1) {
                     commandSender.sendMessage(ChatColor.YELLOW + "Tagging Match Metadata: " + (this.tally.getStatsManager().isTagMatches() ? "Enabled" : "Disabled"));
                     commandSender.sendMessage(ChatColor.YELLOW + "Match Tag: " + this.tally.getStatsManager().getMatchTag());
                     commandSender.sendMessage(ChatColor.YELLOW + "Match Metadata: " + this.tally.getStatsManager().matchData.toString());
                 }
+                return true;
             case "caches":
                 if (strings.length <= 1) {
                     int cleared = this.tally.getStatsManager().clearCaches();
                     commandSender.sendMessage(ChatColor.AQUA + "Caches cleared, size: " + cleared + " objects");
                 }
+                return true;
             case "verbose":
                 commandSender.sendMessage(ChatColor.AQUA + "Verbose: " + (TallyLogger.verbose ? 'Y' : 'N'));
                 TallyLogger.verbose = !TallyLogger.verbose;
                 commandSender.sendMessage(ChatColor.AQUA + "Verbose Updated To: " + (TallyLogger.verbose ? 'Y' : 'N'));
+                return true;
             default:
                 return false;
         }
