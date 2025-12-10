@@ -7,7 +7,6 @@ import tk.jasonho.tally.api.models.Game;
 import tk.jasonho.tally.api.models.Label;
 import tk.jasonho.tally.api.models.Player;
 import tk.jasonho.tally.api.models.Statistic;
-import tk.jasonho.tally.api.util.commits.IStatisticsCommit;
 import tk.jasonho.tally.api.util.commits.StatisticsCommit;
 
 import java.util.Date;
@@ -71,11 +70,29 @@ public class SimpleStatisticsCommit extends StatisticsCommit {
 
         statistic.attachMetadata(mgr, extras);
 
-        JsonObject isHidden = new JsonObject();
-        isHidden.addProperty("hidden", hidden);
-        statistic.attachMetadata(mgr, "hidden", isHidden);
-
         // TODO: metadata in extras
         this.tally.optionalLog("Tracked with id: " + statistic.getId() + " (" + this.getLogDescription() + ")");
+
+        // after committing important data,
+        this.tagExtras(statistic);
+    }
+
+    public void tagExtras(Statistic statistic) {
+        // hidden tag
+        if (this.tally.getStatsManager().isTagHiddenMetadata()) {
+            JsonObject isHidden = new JsonObject();
+            isHidden.addProperty("hidden", hidden);
+            statistic.attachMetadata(this.tally.getStatsManager(), "hidden", isHidden);
+        } else {
+            this.tally.optionalLog("Not tagging hidden metadata");
+        }
+
+        if (this.tally.getStatsManager().isTagMatches()) {
+            JsonObject tallyMatchData = this.tally.getStatsManager().matchData.deepCopy();
+            tallyMatchData.addProperty("tally-match-id", this.tally.getStatsManager().getMatchTag());
+            statistic.attachMetadata(this.tally.getStatsManager(), "tally-match", tallyMatchData);
+        } else {
+            this.tally.optionalLog("Not tagging match metadata");
+        }
     }
 }

@@ -71,6 +71,12 @@ public class TallyPlugin extends JavaPlugin {
                         this.getConfig().getString("auth"),
                         ((List<String>) this.getConfig().getList("labels", new ArrayList<>())))
         );
+        this.statsManager.setTagMatches(
+                this.getConfig().getBoolean("tag-matches", true)
+        );
+        this.statsManager.setTagHiddenMetadata(
+                this.getConfig().getBoolean("tag-hidden-metadata", true)
+        );
 
 
         this.summaryURL = this.getConfig().contains("summaryUrl") ?
