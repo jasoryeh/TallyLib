@@ -33,7 +33,11 @@ public abstract class Model {
     }
 
     public static JsonElement objectToJsonElement(Object value) throws Exception {
-        if (value instanceof Model) {
+        if (value.getClass().isAssignableFrom(ModelSerializable.class)) {
+            return (JsonElement) value.getClass()
+                    .getDeclaredMethod("serialize")
+                    .invoke(value);
+        } else if (value instanceof Model) {
             return serialize(((Model) value));
         } else if (value instanceof Number) {
             return new JsonPrimitive((Number) value);
