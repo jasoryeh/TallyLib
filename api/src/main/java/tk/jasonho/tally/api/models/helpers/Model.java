@@ -87,6 +87,7 @@ public abstract class Model {
         for (Field declaredField : clazz.getDeclaredFields()) {
             TallyLogger.optionalLog("  ..." + declaredField.getName());
             declaredField.setAccessible(true);
+
             MapsTo[] annotationsByType = declaredField.getAnnotationsByType(MapsTo.class);
 
             if (annotationsByType.length <= 0) {
@@ -103,7 +104,7 @@ public abstract class Model {
                 TallyLogger.optionalLog("      ...converted");
             } catch(Exception e) {
                 TallyLogger.optionalLog("      ...could not convert, " + e.getMessage());
-                throw new Exception("Serialization of this object is not currently supported!: " + (value == null ? "<null>" : value.getClass().getCanonicalName()), e);
+                throw new Exception("Serialization of this object is not currently supported!: " + (value == null ? "<null>" : value.getClass().getCanonicalName()) + " at " + declaredField.getName(), e);
             }
 
             for (MapsTo mapsTo : annotationsByType) {
