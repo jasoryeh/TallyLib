@@ -33,7 +33,9 @@ public abstract class Model {
     }
 
     public static JsonElement objectToJsonElement(Object value) throws Exception {
-        if (value.getClass().isAssignableFrom(ModelSerializable.class)) {
+        if (value == null) {
+            return JsonNull.INSTANCE;
+        } else if (value.getClass().isAssignableFrom(ModelSerializable.class)) {
             return (JsonElement) value.getClass()
                     .getDeclaredMethod("serialize")
                     .invoke(value);
@@ -47,8 +49,6 @@ public abstract class Model {
             return new JsonPrimitive((Boolean) value);
         } else if (value instanceof Character) {
             return new JsonPrimitive((Character) value);
-        } else if (value == null) {
-            return JsonNull.INSTANCE;
         } else if (value instanceof JsonElement) {
             return ((JsonElement) value);
         } else if (value instanceof Collection) {
@@ -76,7 +76,7 @@ public abstract class Model {
             return jsonObject;
         } else {
             TallyLogger.optionalLog("      ...could not convert to Json Element");
-            throw new Exception("Serialization of '" + value.getClass().getCanonicalName() + "' is not currently supported!");
+            throw new Exception("Serialization of '" + (value == null ? value.getClass().getCanonicalName() : "<null>") + "' is not currently supported!");
         }
     }
 
