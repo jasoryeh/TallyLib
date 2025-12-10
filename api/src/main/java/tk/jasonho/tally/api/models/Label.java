@@ -7,6 +7,8 @@ import tk.jasonho.tally.api.TallyStatsManager;
 import tk.jasonho.tally.api.models.helpers.MapsTo;
 import tk.jasonho.tally.api.models.helpers.Model;
 
+import java.util.HashMap;
+
 @Data
 public class Label extends Model {
     @MapsTo("id")
@@ -15,6 +17,8 @@ public class Label extends Model {
     private String label;
     @MapsTo("name")
     private String name;
+
+    public static HashMap<String, Label> cache = new HashMap<>();
 
     public Label() {}
 
@@ -43,9 +47,10 @@ public class Label extends Model {
     }
 
     public static Label of(TallyStatsManager mgr, String label) {
+        if (cache.containsKey(label)) return cache.get(label);
         Label label1 = new Label();
         label1.setLabel(label);
         label1.save(mgr);
-        return label1;
+        return cache.put(label, label1);
     }
 }

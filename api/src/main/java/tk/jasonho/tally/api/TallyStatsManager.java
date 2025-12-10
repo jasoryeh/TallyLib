@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 import tk.jasonho.tally.api.interfacing.TallyConnectionBuilder;
 import tk.jasonho.tally.api.models.Instance;
+import tk.jasonho.tally.api.models.Label;
+import tk.jasonho.tally.api.models.Player;
 import tk.jasonho.tally.api.util.TallyLogger;
 import tk.jasonho.tally.api.util.TallyUtils;
 
@@ -70,5 +72,14 @@ public class TallyStatsManager {
                 .verifyJson();
     }
 
+    public int clearCaches() {
+        int label = Label.cache.size();
+        Label.cache.clear();
+        int player = Player.cache.size();
+        Player.cache.clear();
+        TallyLogger.optionalLog("Cleared caches: " + label + " labels, " + player + " players");
+
+        return label + player;
+    }
 
 }

@@ -19,7 +19,7 @@ class TallyCommand extends BukkitCommand {
 
     {
         this.description = "Manage Tally statistics settings.";
-        this.usageMessage = "/tally <list|tasks|stats|instance|summary|addlabel|removelabel|match> [label1 label2 label3...]";
+        this.usageMessage = "/tally <list|tasks|stats|instance|summary|addlabel|removelabel|match|caches> [label1 label2 label3...]";
         this.setPermission("tally.manage");
         this.setAliases(new ArrayList<>());
     }
@@ -112,6 +112,11 @@ class TallyCommand extends BukkitCommand {
                     commandSender.sendMessage(ChatColor.YELLOW + "Tagging Match Metadata: " + (this.tally.getStatsManager().isTagMatches() ? "Enabled" : "Disabled"));
                     commandSender.sendMessage(ChatColor.YELLOW + "Match Tag: " + this.tally.getStatsManager().getMatchTag());
                     commandSender.sendMessage(ChatColor.YELLOW + "Match Metadata: " + this.tally.getStatsManager().matchData.toString());
+                }
+            case "caches":
+                if (strings.length <= 1) {
+                    int cleared = this.tally.getStatsManager().clearCaches();
+                    commandSender.sendMessage(ChatColor.AQUA + "Caches cleared, size: " + cleared + " objects");
                 }
             default:
                 return false;

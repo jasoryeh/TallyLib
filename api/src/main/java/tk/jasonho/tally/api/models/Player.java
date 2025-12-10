@@ -8,6 +8,8 @@ import tk.jasonho.tally.api.TallyStatsManager;
 import tk.jasonho.tally.api.models.helpers.MapsTo;
 import tk.jasonho.tally.api.models.helpers.Model;
 
+import java.util.HashMap;
+
 @Data
 public class Player extends Model {
     @MapsTo("id")
@@ -18,6 +20,8 @@ public class Player extends Model {
     private String identifier;
     @MapsTo("belongsTo")
     private Integer belongsTo;
+
+    public static HashMap<String, Player> cache = new HashMap<>();
 
     public Player() {}
 
@@ -36,6 +40,10 @@ public class Player extends Model {
 
     @SneakyThrows
     public static Player of(TallyStatsManager manager, Game game, String identifier) {
+        String cacheKey = game.getId() + "-" + identifier;
+
+        if (cache.containsKey(cacheKey)) return cache.get(cacheKey);
+
         JsonElement data = manager.connectionBuilder("player/query?game=" + game.getId() + "&identifier=" + identifier)
                 .get()
                 .getReadJson()
@@ -50,6 +58,6 @@ public class Player extends Model {
         } else {
             player = Model.deserialize(Player.class, data.getAsJsonObject());
         }
-        return player;
+        return cache.put(cacheKey, player);
     }
 }
