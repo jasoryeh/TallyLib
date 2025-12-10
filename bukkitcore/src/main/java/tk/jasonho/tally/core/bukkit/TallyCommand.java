@@ -8,6 +8,7 @@ import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.scheduler.BukkitTask;
 import tk.jasonho.tally.api.TallyConfiguration;
 import tk.jasonho.tally.api.models.Statistic;
+import tk.jasonho.tally.api.util.TallyLogger;
 
 import java.util.ArrayList;
 import java.util.regex.Pattern;
@@ -118,6 +119,10 @@ class TallyCommand extends BukkitCommand {
                     int cleared = this.tally.getStatsManager().clearCaches();
                     commandSender.sendMessage(ChatColor.AQUA + "Caches cleared, size: " + cleared + " objects");
                 }
+            case "verbose":
+                commandSender.sendMessage(ChatColor.AQUA + "Verbose: " + (TallyLogger.verbose ? 'Y' : 'N'));
+                TallyLogger.verbose = !TallyLogger.verbose;
+                commandSender.sendMessage(ChatColor.AQUA + "Verbose Updated To: " + (TallyLogger.verbose ? 'Y' : 'N'));
             default:
                 return false;
         }
