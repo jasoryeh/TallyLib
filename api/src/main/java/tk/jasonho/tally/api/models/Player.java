@@ -50,7 +50,7 @@ public class Player extends Model {
                 .getAsJsonObject()
                 .get("data");
         Player player;
-        if (data.isJsonNull()) {
+        if (data == null || data.isJsonNull()) {
             player = new Player();
             player.setGame(game.getId());
             player.setIdentifier(identifier);
