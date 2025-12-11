@@ -22,6 +22,7 @@ public class TallyStatisticsTask extends TallyTask {
     public Throwable failed = null;
     public AtomicLong retries = new AtomicLong(0);
 
+    public static Deque<TallyStatisticsTask> failedQueue = new ConcurrentLinkedDeque<>();
     public static Deque<TallyStatisticsTask> taskQueue = new ConcurrentLinkedDeque<>();
     public static List<TallyStatisticsTask> tasks = new ArrayList<>();
 
@@ -63,8 +64,11 @@ public class TallyStatisticsTask extends TallyTask {
             e.printStackTrace();
 
             if (retries.getAndIncrement() < this.tally.getMaxRetries()) {
-                this.tally.getTaskManager().async(this);
+                submitTask(this);
                 this.tally.getLogger().info("Set this task to retry: " + this.getLogDescription());
+            } else {
+                failedQueue.add(this);
+                this.tally.getLogger().info("Task failed, will try again later: " + this.getLogDescription());
             }
         }
     }
@@ -77,18 +81,37 @@ public class TallyStatisticsTask extends TallyTask {
         }
     }
 
-    public static void startHandler(TallyPlugin tally) {
-        tally.getTaskManager().asyncRepeating(() -> {
-            while (!TallyStatisticsTask.taskQueue.isEmpty()) {
-                TallyStatisticsTask task = TallyStatisticsTask.taskQueue.pop();
-                try {
-                    task.run();
-                } catch (Throwable t) {
-                    task.tally.getLogger().warning("Failed to log " + task.getLogDescription());
+    public static void handleTasks() {
+        while (!TallyStatisticsTask.taskQueue.isEmpty()) {
+            TallyStatisticsTask task = TallyStatisticsTask.taskQueue.pop();
+            try {
+                task.run();
+            } catch (Throwable t) {
+                task.tally.getLogger().warning("Failed to log " + task.getLogDescription());
 
-                    throw t;
-                }
+                throw t;
             }
-        }, 20L, 20L);
+        }
+    }
+
+    public static void startHandler(TallyPlugin tally) {
+        tally.getTaskManager().asyncRepeating(TallyStatisticsTask::handleTasks, 20L, 20L);
+    }
+
+    public static void handleFailedTasks() {
+        while (!TallyStatisticsTask.failedQueue.isEmpty()) {
+            TallyStatisticsTask task = TallyStatisticsTask.failedQueue.pop();
+            try {
+                task.run();
+            } catch (Throwable t) {
+                task.tally.getLogger().warning("Failed to log (in retry) " + task.getLogDescription());
+
+                throw t;
+            }
+        }
+    }
+
+    public static void startRetryHandler(TallyPlugin tally) {
+        tally.getTaskManager().asyncRepeating(TallyStatisticsTask::handleFailedTasks, 20L, 20L * 5);
     }
 }
