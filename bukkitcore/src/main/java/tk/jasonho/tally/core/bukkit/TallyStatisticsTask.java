@@ -89,6 +89,6 @@ public class TallyStatisticsTask extends TallyTask {
                     throw t;
                 }
             }
-        }, 20L, 20L * 5);
+        }, 20L, 20L);
     }
 }
