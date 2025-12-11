@@ -69,6 +69,7 @@ class TallyCommand extends BukkitCommand {
                 commandSender.sendMessage(ChatColor.AQUA + "Tally has " + TallyStatisticsTask.tasks.stream().filter((t) -> t.started).count() + " statistics commits started.");
                 commandSender.sendMessage(ChatColor.AQUA + "Tally has " + TallyStatisticsTask.tasks.stream().filter((t) -> t.finished).count() + " statistics commits completed.");
                 commandSender.sendMessage(ChatColor.AQUA + "Tally has " + TallyStatisticsTask.tasks.stream().filter((t) -> t.failed != null).count() + " statistics commits failed.");
+                commandSender.sendMessage(ChatColor.AQUA + "Tally has " + TallyStatisticsTask.failedQueue.stream().filter((t) -> t.failed != null).count() + " statistics commits that have failed and are waiting to be retried.");
                 return true;
             case "instance":
                 TallyConfiguration configuration = this.tally.getStatsManager().getConfiguration();
