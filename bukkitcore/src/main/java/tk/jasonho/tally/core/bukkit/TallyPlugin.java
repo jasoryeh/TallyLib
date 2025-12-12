@@ -104,7 +104,7 @@ public class TallyPlugin extends JavaPlugin {
 
         // start executing
         TallyStatisticsTask.startHandler(this);
-        TallyStatisticsTask.startRetryHandler(this);
+        //TallyStatisticsTask.startRetryHandler(this);
 
         this.getLogger().info("Tally upped.");
     }
